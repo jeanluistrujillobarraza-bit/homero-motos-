@@ -117,7 +117,7 @@
             // Close sidebar when clicking outside of it
             document.addEventListener('click', function(e) {
                 if (window.innerWidth <= 992 && sidebar && sidebar.classList.contains('active')) {
-                    if (!sidebar.contains(e.target) && e.target !== toggleBtn) {
+                    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
                         sidebar.classList.remove('active');
                     }
                 }
