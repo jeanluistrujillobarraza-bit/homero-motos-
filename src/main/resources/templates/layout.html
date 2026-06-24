@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - Homero Motos'"></title>
+    <!-- Add FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-image: linear-gradient(rgba(248, 250, 252, 0.70), rgba(248, 250, 252, 0.70)), 
+                             url('/hmfondo.jpg') !important;
+            background-attachment: fixed !important;
+            background-repeat: repeat !important;
+            background-size: 320px !important;
+        }
+    </style>
+    <th:block th:if="${extraStyle != null}" th:replace="${extraStyle}"></th:block>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-logo" style="display: flex; align-items: center; gap: 10px; margin-bottom: 30px;">
+                <img th:src="@{/hm1.gif}" alt="Logo" style="height: 38px; width: auto; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                <span style="font-weight: 800; font-size: 18px; color: #ffffff;">Homero Motos</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a th:href="@{/}" class="sidebar-link" th:classappend="${currentUri == '/' ? 'active' : ''}">
+                        <i class="fa-solid fa-chart-line"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/motorcycles}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/motorcycles') ? 'active' : ''}">
+                        <i class="fa-solid fa-motorcycle"></i> Motocicletas
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/financing}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/financing') ? 'active' : ''}">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Financiaciones
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/payments}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/payments') ? 'active' : ''}">
+                        <i class="fa-solid fa-vault"></i> Recaudos
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/clients}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/clients') ? 'active' : ''}">
+                        <i class="fa-solid fa-users"></i> Clientes
+                    </a>
+                </li>
+                <li sec:authorize="hasRole('ROLE_ADMIN')">
+                    <a th:href="@{/users}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/users') ? 'active' : ''}">
+                        <i class="fa-solid fa-users-cog"></i> Usuarios
+                    </a>
+                </li>
+            </ul>
+
+            <!-- User Panel -->
+            <div class="sidebar-user" sec:authorize="isAuthenticated()">
+                <div class="sidebar-user-name" th:text="${#authentication.name}">Usuario</div>
+                <div class="sidebar-user-role" sec:authentication="principal.authorities[0].authority">ROL</div>
+                <a th:href="@{/logout}" class="btn-logout">
+                    <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header bar with search -->
+            <header class="content-header">
+                <h1 class="page-title" th:text="${pageTitle}">Página</h1>
+                
+                <form th:action="@{/financing/search}" method="get" class="search-bar">
+                    <input type="text" name="query" class="input-search" placeholder="Buscar placa, cédula o comprador..." required>
+                    <button type="submit" class="btn btn-primary glowing-btn">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </form>
+            </header>
+
+            <!-- Error and Success Messages -->
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${param.error}" class="alert alert-danger" th:text="${param.error}"></div>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${param.successMessage}" class="alert alert-success" th:text="${param.successMessage}"></div>
+            <div th:if="${param.success}" class="alert alert-success" th:text="${param.success}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <!-- Page-specific content insertion -->
+            <div th:replace="${content}"></div>
+        </main>
+    </div>
+</body>
+</html>

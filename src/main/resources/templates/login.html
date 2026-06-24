@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Homero Motos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-blue-bg: #eff6ff;
+            --accent-emerald: #10b981;
+            --accent-emerald-bg: #ecfdf5;
+            --accent-rose: #ef4444;
+            --accent-rose-bg: #fef2f2;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --border-radius: 12px;
+            --transition-smooth: all 0.2s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            background: linear-gradient(rgba(248, 250, 252, 0.70), rgba(248, 250, 252, 0.70)), 
+                        url('/hmfondo.jpg') repeat fixed;
+            background-size: 320px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Card Container */
+        .login-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-smooth);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--accent-blue);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+            color: var(--accent-blue);
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-top: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 16px;
+            transition: var(--transition-smooth);
+        }
+
+        .form-group:focus-within .input-icon {
+            color: var(--accent-blue);
+        }
+
+        .form-control {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 14px 16px 14px 48px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 15px;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: var(--transition-smooth);
+            width: 100%;
+            height: 52px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-danger {
+            background: var(--accent-rose-bg);
+            color: var(--accent-rose);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-success {
+            background: var(--accent-emerald-bg);
+            color: var(--accent-emerald);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 28px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .divider::before {
+            margin-right: 16px;
+        }
+
+        .divider::after {
+            margin-left: 16px;
+        }
+
+        .login-footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <div class="sidebar-logo" style="display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                <img th:src="@{/hm1.gif}" alt="Logo" style="height: 48px; width: auto; border-radius: 6px; border: 1px solid rgba(0,0,0,0.05);">
+                <span style="font-weight: 800; font-size: 22px; color: var(--text-primary);">Homero Motos</span>
+            </div>
+            <h1 class="login-title">Control de Créditos y Cobros</h1>
+            <p class="login-subtitle">Sistema de gestión financiera</p>
+        </div>
+
+        <!-- Error Alert -->
+        <div th:if="${param.error}" class="alert alert-danger">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Usuario o contraseña incorrectos.</span>
+        </div>
+
+        <!-- Logout Alert -->
+        <div th:if="${param.logout}" class="alert alert-success">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Sesión cerrada correctamente.</span>
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="form-group">
+                <label for="username" class="form-label">Usuario</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user input-icon"></i>
+                    <input type="text" id="username" name="username" class="form-control"
+                        placeholder="Ingrese su usuario" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Contraseña</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                    <input type="password" id="password" name="password" class="form-control"
+                        placeholder="Ingrese su contraseña" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
+            </button>
+        </form>
+
+        <div class="divider">Seguridad</div>
+
+        <div class="login-footer">
+            <i class="fa-solid fa-shield-halved"></i> Conexión segura encriptada
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: html(title='Detalle de Crédito', pageTitle='Estado del Crédito', content=~{::#detail-content}, extraStyle=~{::style})}">
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #0f172a;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-blue-bg: #eff6ff;
+            --accent-emerald: #10b981;
+            --accent-emerald-bg: #ecfdf5;
+            --accent-orange: #f59e0b;
+            --accent-orange-bg: #fffbeb;
+            --accent-rose: #ef4444;
+            --accent-rose-bg: #fef2f2;
+            --accent-purple: #8b5cf6;
+            --accent-purple-bg: #f5f3ff;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --sidebar-width: 260px;
+            --border-radius: 12px;
+            --transition-smooth: all 0.2s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Clean Panel (White Card) */
+        .glass-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-smooth);
+        }
+        .glass-panel:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* App Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .app-sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 40px;
+            letter-spacing: -0.5px;
+        }
+        .sidebar-logo i {
+            color: var(--accent-blue);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            color: #ffffff;
+        }
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-link.active {
+            background: #1e293b;
+            font-weight: 600;
+        }
+
+        .sidebar-user {
+            margin-top: auto;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-role {
+            font-size: 11px;
+            color: var(--accent-emerald);
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .btn-logout {
+            margin-top: 10px;
+            display: inline-block;
+            color: var(--accent-rose);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: var(--transition-smooth);
+        }
+        .btn-logout:hover {
+            text-decoration: underline;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            max-width: 1400px;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .input-search {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            transition: var(--transition-smooth);
+        }
+        .input-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: var(--accent-emerald);
+            color: #ffffff;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-hover);
+        }
+
+        .btn-danger {
+            background: var(--accent-rose);
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        /* Forms (Shared) */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* Tables (Shared) */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .custom-table th {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .custom-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .custom-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* Alerts (Shared) */
+        .alert {
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+        }
+        .alert-danger {
+            background: var(--accent-rose-bg);
+            color: var(--accent-rose);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .alert-success {
+            background: var(--accent-emerald-bg);
+            color: var(--accent-emerald);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Badges (Shared) */
+        .moto-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-disponible { background: var(--accent-emerald-bg); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-en-financiacion { background: var(--accent-blue-bg); color: var(--accent-blue); border: 1px solid rgba(37, 99, 235, 0.3); }
+        .badge-pago_vencido { background: var(--accent-rose-bg); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-pagada { background: var(--accent-emerald); color: #ffffff; }
+        .badge-vendida { background: #64748b; color: #ffffff; }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .app-sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 20px;
+            }
+        }
+
+        /* Financing Detail Specific Styles */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 1024px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .detail-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .detail-value.highlight {
+            color: var(--accent-blue);
+        }
+        .detail-value.emerald {
+            color: var(--accent-emerald);
+        }
+        .detail-value.orange {
+            color: var(--accent-orange);
+        }
+    </style>
+</head>
+<body>
+    <div id="detail-content">
+        <!-- Success Alert for Fully Paid -->
+        <div th:if="${plan.estadoCredito == 'PAGADO'}" class="alert alert-success" style="display: flex; align-items: center; gap: 15px; font-size: 16px; margin-bottom: 25px;">
+            <i class="fa-solid fa-circle-check" style="font-size: 24px;"></i>
+            <div>
+                <strong>¡Felicidades!</strong> La deuda de este crédito ha sido cancelada en su totalidad ($0.00 pendiente).
+            </div>
+        </div>
+
+        <!-- Overdue Alert banner -->
+        <div th:if="${plan.estadoCredito == 'ATRASADO'}" class="alert alert-danger" style="display: flex; align-items: center; justify-content: space-between; gap: 15px; font-size: 16px; margin-bottom: 25px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-rose); color: var(--accent-rose); border-radius: 8px; padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px;"></i>
+                <div>
+                    <strong>Crédito en mora:</strong> El cliente presenta <strong th:text="${plan.cuotasAtrasadas}">0</strong> cuota(s) vencida(s) con <strong th:text="${plan.diasRetraso}">0</strong> días de retraso.
+                    <div style="font-size: 14px; margin-top: 4px; color: var(--text-secondary);">
+                        Monto en mora: <strong style="color: var(--accent-rose);" th:text="${'$' + #numbers.formatDecimal(plan.valorTotalAdeudado, 1, 'POINT', 0, 'COMMA')}">$0.00</strong>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a th:href="${waUrl}" target="_blank" class="btn btn-success glowing-btn" style="background: #25D366; border-color: #25D366; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> Notificar por WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <!-- Left Column: Buyer & Financial Status -->
+            <div style="display: flex; flex-direction: column; gap: 30px;">
+                
+                <!-- Main Info Card -->
+                <div class="glass-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 class="detail-section-title" style="margin: 0; border: none; padding: 0;">Resumen del Financiamiento</h3>
+                        
+                        <!-- Credit State Badges -->
+                        <span th:if="${plan.estadoCredito == 'PAGADO'}" class="moto-badge badge-pagada" style="position: static;">PAGADO / CRÉDITO CANCELADO</span>
+                        <span th:if="${plan.estadoCredito == 'AL_DIA'}" class="moto-badge badge-disponible" style="position: static; font-size: 13px;">ESTÁ AL DÍA</span>
+                        <span th:if="${plan.estadoCredito == 'AL_DIA_PAGO_HOY'}" class="moto-badge badge-disponible" style="position: static; font-size: 13px; background: rgba(16,185,129,0.25);">PAGÓ CUOTA HOY (AL DÍA)</span>
+                        <span th:if="${plan.estadoCredito == 'ATRASADO'}" class="moto-badge badge-en-financiacion" style="position: static; background: rgba(249,115,22,0.2); color: var(--accent-orange); border-color: var(--accent-orange); font-size: 13px;">PRESENTA RETRASOS / CUOTAS PENDIENTES</span>
+                    </div>
+
+                    <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                        <div class="glass-panel" style="padding: 15px; background: rgba(255,255,255,0.01);">
+                            <div class="stat-title">Porcentaje Cancelado</div>
+                            <div class="stat-value" style="font-size: 22px; color: var(--accent-emerald);" th:text="${#numbers.formatDecimal(plan.porcentajeCancelado, 1, 1) + '%'}">0%</div>
+                        </div>
+                        <div class="glass-panel" style="padding: 15px; background: rgba(255,255,255,0.01);">
+                            <div class="stat-title">Total Pagado</div>
+                            <div class="stat-value" style="font-size: 22px; color: var(--accent-emerald);" th:text="${'$' + #numbers.formatDecimal(plan.totalPagado, 1, 'POINT', 0, 'COMMA')}">$0.00</div>
+                        </div>
+                        <div class="glass-panel" style="padding: 15px; background: rgba(255,255,255,0.01);">
+                            <div class="stat-title">Saldo Pendiente</div>
+                            <div class="stat-value" style="font-size: 22px; color: var(--accent-orange);" th:text="${'$' + #numbers.formatDecimal(plan.saldoPendiente, 1, 'POINT', 0, 'COMMA')}">$0.00</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h4 style="color: var(--accent-blue); margin-bottom: 12px;">Datos del Comprador</h4>
+                            <div class="detail-row"><span class="detail-label">Nombre:</span><span class="detail-value" th:text="${plan.buyer.nombreCompleto}">Juan</span></div>
+                            <div class="detail-row"><span class="detail-label">Cédula:</span><span class="detail-value" th:text="${plan.buyer.cedula}">123</span></div>
+                            <div class="detail-row"><span class="detail-label">Teléfono:</span><span class="detail-value" th:text="${plan.buyer.telefono}">300</span></div>
+                            <div class="detail-row"><span class="detail-label">Dirección:</span><span class="detail-value" th:text="${plan.buyer.direccion}">Calle</span></div>
+                            <div class="detail-row"><span class="detail-label">Correo:</span><span class="detail-value" th:text="${plan.buyer.correo != null && !plan.buyer.correo.isEmpty() ? plan.buyer.correo : 'No registrado'}">correo</span></div>
+                            <div class="detail-row"><span class="detail-label">Fecha Compra:</span><span class="detail-value" th:text="${#temporals.format(plan.buyer.fechaCompra, 'dd/MM/yyyy')}">12/06</span></div>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--accent-blue); margin-bottom: 12px;">Condiciones del Plan</h4>
+                             <div class="detail-row"><span class="detail-label">Valor Moto:</span><span class="detail-value" th:text="${'$' + #numbers.formatDecimal(plan.valorTotal, 1, 'POINT', 0, 'COMMA')}">$0.00</span></div>
+                            <div class="detail-row"><span class="detail-label">Cuota Inicial:</span><span class="detail-value" th:text="${'$' + #numbers.formatDecimal(plan.cuotaInicial, 1, 'POINT', 0, 'COMMA')}">$0.00</span></div>
+                            <div class="detail-row"><span class="detail-label">Saldo Financiado:</span><span class="detail-value" th:text="${'$' + #numbers.formatDecimal(plan.saldoFinanciado, 1, 'POINT', 0, 'COMMA')}">$0.00</span></div>
+                            <div class="detail-row"><span class="detail-label">N° Cuotas Pactadas:</span><span class="detail-value" th:text="${plan.cuotasTotales}">12</span></div>
+                            <div class="detail-row"><span class="detail-label">Valor de Cuota:</span><span class="detail-valueHighlight" th:text="${'$' + #numbers.formatDecimal(plan.valorCuota, 1, 'POINT', 0, 'COMMA')}">$0.00</span></div>
+                            <div class="detail-row"><span class="detail-label">Frecuencia:</span><span class="detail-value" th:text="${plan.frecuenciaPago}">Mensual</span></div>
+                            <div class="detail-row"><span class="detail-label">Cuotas Pagadas:</span><span class="detail-value emerald" th:text="${plan.cuotasPagadas}">0</span></div>
+                            <div class="detail-row"><span class="detail-label">Cuotas Restantes:</span><span class="detail-value orange" th:text="${plan.cuotasRestantes}">12</span></div>
+                            <div class="detail-row"><span class="detail-label">Inicio Financiamiento:</span><span class="detail-value" th:text="${#temporals.format(plan.fechaInicio, 'dd/MM/yyyy')}">12/06</span></div>
+                            <div class="detail-row"><span class="detail-label">Fin Estimado:</span><span class="detail-value" th:text="${#temporals.format(plan.fechaFinEstimada, 'dd/MM/yyyy')}">12/06</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payments Table Card -->
+                <div class="glass-panel">
+                    <h3 class="detail-section-title">Historial de Pagos Realizados</h3>
+                    <div class="table-container" style="margin-top: 0;">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha de Pago</th>
+                                    <th>Cuota N°</th>
+                                    <th>Monto Pagado</th>
+                                    <th>Método de Pago</th>
+                                    <th>Registrado Por</th>
+                                    <th>Observaciones</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="pay : ${payments}">
+                                    <td th:text="${#temporals.format(pay.fechaPago, 'dd/MM/yyyy HH:mm:ss')}">12/06/2026</td>
+                                    <td th:text="${pay.numeroCuota == 0 ? 'Cuota Inicial' : pay.numeroCuota}">1</td>
+                                    <td th:text="${'$' + #numbers.formatDecimal(pay.valorPagado, 1, 'POINT', 0, 'COMMA')}">$0.00</td>
+                                    <td th:text="${pay.metodoPago}">Efectivo</td>
+                                    <td th:text="${pay.registradoPor}">empleado</td>
+                                    <td th:text="${pay.observaciones}">Ninguna</td>
+                                    <td>
+                                        <div style="display: flex; gap: 4px; align-items: center;">
+                                            <a th:href="@{/payments/receipt/{id}(id=${pay.id})}" target="_blank" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 11px;" title="Ver Recibo PDF">
+                                                <i class="fa-solid fa-file-pdf"></i>
+                                            </a>
+                                            <button sec:authorize="hasRole('ROLE_ADMIN')" type="button" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;" th:onclick="openEditPaymentModal([[${pay.id}]], [[${pay.valorPagado}]], [[${pay.metodoPago}]], [[${pay.observaciones}]])" title="Editar Pago">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </button>
+                                            <form sec:authorize="hasRole('ROLE_ADMIN')" th:action="@{/payments/delete}" method="post" style="display: inline;" onsubmit="return confirm('¿Está seguro de eliminar este pago? El saldo se recalculará.');">
+                                                <input type="hidden" name="paymentId" th:value="${pay.id}">
+                                                <input type="hidden" name="planId" th:value="${plan.id}">
+                                                <button type="submit" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 11px; background: var(--accent-rose);" title="Eliminar Pago">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(payments)}">
+                                    <td colspan="7" style="text-align: center; color: var(--text-secondary);">No se han registrado pagos para este plan.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Motorcycle details & Register Payment Form -->
+            <div style="display: flex; flex-direction: column; gap: 30px;">
+                
+                <!-- Motorcycle Info -->
+                <div class="glass-panel">
+                    <h3 class="detail-section-title">Motocicleta Vendida</h3>
+                    
+                    <div style="max-height: 180px; width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); background: #1e293b; display: flex; align-items: center; justify-content: center;">
+                        <img th:if="${motorcycle.fotoBase64 != null && !motorcycle.fotoBase64.isEmpty()}" th:src="${motorcycle.fotoBase64}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <i th:unless="${motorcycle.fotoBase64 != null && !motorcycle.fotoBase64.isEmpty()}" class="fa-solid fa-motorcycle" style="font-size: 50px; color: var(--text-secondary);"></i>
+                    </div>
+
+                    <h4 style="color: var(--text-primary); margin-bottom: 10px;" th:text="${motorcycle.marca + ' ' + motorcycle.modelo}">Honda CB</h4>
+                    <div class="detail-row"><span class="detail-label">Placa:</span><span class="detail-value highlight" th:text="${motorcycle.placa}">ABC12D</span></div>
+                    <div class="detail-row"><span class="detail-label">Cilindraje:</span><span class="detail-value" th:text="${motorcycle.cilindraje}">190 cc</span></div>
+                    <div class="detail-row"><span class="detail-label">VIN / Chasis:</span><span class="detail-value" th:text="${motorcycle.vin}">123</span></div>
+                    <div class="detail-row"><span class="detail-label">Número de Motor:</span><span class="detail-value" th:text="${motorcycle.numeroMotor}">123</span></div>
+                    <div class="detail-row"><span class="detail-label">Color:</span><span class="detail-value" th:text="${motorcycle.color}">Gris</span></div>
+                </div>
+
+                <!-- Register Payment Form -->
+                <div class="glass-panel" th:if="${plan.estadoCredito != 'PAGADO'}">
+                    <h3 class="detail-section-title"><i class="fa-solid fa-cash-register"></i> Registrar Abono / Pago</h3>
+                    
+                    <form th:action="@{/payments/register}" method="post">
+                        <input type="hidden" name="planId" th:value="${plan.id}">
+
+                        <div class="form-group">
+                            <label for="valorPagado" class="form-label">Monto del Pago ($)</label>
+                            <input type="number" step="0.01" id="valorPagado" name="valorPagado" class="form-control" th:value="${plan.valorCuota}" required>
+                            <span style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block;" 
+                                  th:text="${'Valor sugerido (cuota pactada): $' + #numbers.formatDecimal(plan.valorCuota, 1, 'POINT', 0, 'COMMA')}"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="metodoPago" class="form-label">Método de Pago</label>
+                            <select id="metodoPago" name="metodoPago" class="form-control" required style="background: var(--bg-secondary);">
+                                <option value="EFECTIVO">Efectivo</option>
+                                <option value="TRANSFERENCIA">Transferencia Bancaria</option>
+                                <option value="NEQUI">Nequi</option>
+                                <option value="TARJETA">Tarjeta Débito / Crédito</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="observaciones" class="form-label">Observaciones</label>
+                            <textarea id="observaciones" name="observaciones" class="form-control" rows="2" placeholder="Ej. Pago correspondiente a cuota del mes..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success glowing-btn" style="width: 100%; margin-top: 10px;" 
+                                onclick="return confirm('¿Está seguro de registrar este pago? Esta operación actualizará el saldo financiero.');">
+                            <i class="fa-solid fa-check"></i> Registrar Pago
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Payment Modal -->
+        <div id="editPaymentModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(15,23,42,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <div class="glass-panel" style="max-width: 450px; width: 90%; position: relative;">
+                <h3 class="detail-section-title" style="margin-bottom: 20px;"><i class="fa-solid fa-edit"></i> Editar Pago</h3>
+                <form th:action="@{/payments/edit}" method="post">
+                    <input type="hidden" id="editPaymentId" name="paymentId">
+                    <input type="hidden" name="planId" th:value="${plan.id}">
+
+                    <div class="form-group">
+                        <label for="editValorPagado" class="form-label">Monto del Pago ($)</label>
+                        <input type="number" step="0.01" id="editValorPagado" name="valorPagado" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editMetodoPago" class="form-label">Método de Pago</label>
+                        <select id="editMetodoPago" name="metodoPago" class="form-control" required style="background: var(--bg-secondary);">
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="TRANSFERENCIA">Transferencia Bancaria</option>
+                            <option value="NEQUI">Nequi</option>
+                            <option value="TARJETA">Tarjeta Débito / Crédito</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editObservaciones" class="form-label">Observaciones</label>
+                        <textarea id="editObservaciones" name="observaciones" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="closeEditPaymentModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function openEditPaymentModal(id, valor, metodo, obs) {
+                document.getElementById('editPaymentId').value = id;
+                document.getElementById('editValorPagado').value = valor;
+                document.getElementById('editMetodoPago').value = metodo;
+                document.getElementById('editObservaciones').value = obs || '';
+                
+                const modal = document.getElementById('editPaymentModal');
+                modal.style.display = 'flex';
+            }
+
+            function closeEditPaymentModal() {
+                document.getElementById('editPaymentModal').style.display = 'none';
+            }
+        </script>
+    </div>
+</body>
+</html>

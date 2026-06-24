@@ -1,0 +1,8 @@
+target/
+maven/
+.vscode/
+.idea/
+*.class
+*.jar
+*.war
+.DS_Store

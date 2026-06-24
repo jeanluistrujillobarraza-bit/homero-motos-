@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: html(title='Planes de Financiación', pageTitle='Créditos y Financiaciones', content=~{::#financing-list-content}, extraStyle=~{::style})}">
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #0f172a;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-blue-bg: #eff6ff;
+            --accent-emerald: #10b981;
+            --accent-emerald-bg: #ecfdf5;
+            --accent-orange: #f59e0b;
+            --accent-orange-bg: #fffbeb;
+            --accent-rose: #ef4444;
+            --accent-rose-bg: #fef2f2;
+            --accent-purple: #8b5cf6;
+            --accent-purple-bg: #f5f3ff;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --sidebar-width: 260px;
+            --border-radius: 12px;
+            --transition-smooth: all 0.2s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Clean Panel (White Card) */
+        .glass-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-smooth);
+        }
+        .glass-panel:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* App Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .app-sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 40px;
+            letter-spacing: -0.5px;
+        }
+        .sidebar-logo i {
+            color: var(--accent-blue);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            color: #ffffff;
+        }
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-link.active {
+            background: #1e293b;
+            font-weight: 600;
+        }
+
+        .sidebar-user {
+            margin-top: auto;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-role {
+            font-size: 11px;
+            color: var(--accent-emerald);
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .btn-logout {
+            margin-top: 10px;
+            display: inline-block;
+            color: var(--accent-rose);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: var(--transition-smooth);
+        }
+        .btn-logout:hover {
+            text-decoration: underline;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            max-width: 1400px;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .input-search {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            transition: var(--transition-smooth);
+        }
+        .input-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: var(--accent-emerald);
+            color: #ffffff;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-hover);
+        }
+
+        .btn-danger {
+            background: var(--accent-rose);
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        /* Forms (Shared) */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* Tables (Shared) */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .custom-table th {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .custom-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .custom-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* Alerts (Shared) */
+        .alert {
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+        }
+        .alert-danger {
+            background: var(--accent-rose-bg);
+            color: var(--accent-rose);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .alert-success {
+            background: var(--accent-emerald-bg);
+            color: var(--accent-emerald);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Badges (Shared) */
+        .moto-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-disponible { background: var(--accent-emerald-bg); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-en-financiacion { background: var(--accent-blue-bg); color: var(--accent-blue); border: 1px solid rgba(37, 99, 235, 0.3); }
+        .badge-pago_vencido { background: var(--accent-rose-bg); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-pagada { background: var(--accent-emerald); color: #ffffff; }
+        .badge-vendida { background: #64748b; color: #ffffff; }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .app-sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 20px;
+            }
+        }
+
+        /* Financing List Specific Styles */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 1024px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .detail-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .detail-value.highlight {
+            color: var(--accent-blue);
+        }
+        .detail-value.emerald {
+            color: var(--accent-emerald);
+        }
+        .detail-value.orange {
+            color: var(--accent-orange);
+        }
+        .moto-placa {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            background: var(--accent-blue-bg);
+            padding: 2px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div id="financing-list-content">
+        
+        <div class="glass-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;"><i class="fa-solid fa-file-invoice-dollar"></i> Registro de Créditos</h3>
+                <a th:href="@{/financing/export/excel}" class="btn btn-success" style="background: #107c41; border-color: #107c41; color: #fff; font-size: 13px; padding: 8px 16px;">
+                    <i class="fa-solid fa-file-excel"></i> Exportar a Excel
+                </a>
+            </div>
+            
+            <div class="table-container" style="margin-top: 0;">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Comprador</th>
+                            <th>Cédula</th>
+                            <th>Vehículo</th>
+                            <th>Placa</th>
+                            <th>Saldo Pendiente</th>
+                            <th>Estado Crédito</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="plan : ${plans}">
+                            <td>
+                                <strong th:text="${plan.buyer.nombreCompleto}" style="color: var(--text-primary); display: block;">Juan</strong>
+                                <span style="font-size: 11px; color: var(--text-secondary);" th:text="${'Frecuencia: ' + plan.frecuenciaPago}">Mensual</span>
+                            </td>
+                            <td th:text="${plan.buyer.cedula}">12345678</td>
+                            <td>
+                                <span th:text="${motos[planStat.index].marca + ' ' + motos[planStat.index].modelo}">Honda</span>
+                            </td>
+                            <td>
+                                <span class="moto-placa" th:text="${motos[planStat.index].placa}" style="margin: 0;">ABC-123</span>
+                            </td>
+                             <td>
+                                 <strong th:text="${'$' + #numbers.formatDecimal(plan.saldoPendiente, 1, 'POINT', 0, 'COMMA')}" style="color: var(--accent-orange);">0.00</strong>
+                                 <span style="font-size: 11px; color: var(--text-secondary); display: block;" 
+                                       th:text="${'De: $' + #numbers.formatDecimal(plan.valorTotal, 1, 'POINT', 0, 'COMMA')}"></span>
+                                 <span th:if="${plan.estadoCredito == 'ATRASADO'}" style="font-size: 11px; color: var(--accent-rose); display: block; margin-top: 4px;">
+                                     <i class="fa-solid fa-triangle-exclamation"></i> 
+                                     <span th:text="${'Vencido: $' + #numbers.formatDecimal(plan.valorTotalAdeudado, 1, 'POINT', 0, 'COMMA')}"></span>
+                                 </span>
+                             </td>
+                             <td>
+                                 <span th:if="${plan.estadoCredito == 'PAGADO'}" class="moto-badge badge-pagada" style="position: static; font-size: 11px;">PAGADO</span>
+                                 <span th:if="${plan.estadoCredito == 'AL_DIA' || plan.estadoCredito == 'AL_DIA_PAGO_HOY'}" class="moto-badge badge-disponible" style="position: static; font-size: 11px;">AL DÍA</span>
+                                 <div th:if="${plan.estadoCredito == 'ATRASADO'}">
+                                     <span class="moto-badge badge-en-financiacion" style="position: static; background: rgba(249,115,22,0.2); color: var(--accent-orange); border-color: var(--accent-orange); font-size: 11px; display: inline-block; margin-bottom: 4px;">ATRASADO</span>
+                                     <span style="font-size: 10px; color: var(--text-secondary); display: block;" th:text="${plan.cuotasAtrasadas + ' cuota(s) vencida(s)'}"></span>
+                                     <span style="font-size: 10px; color: var(--accent-rose); display: block; font-weight: bold;" th:text="${plan.diasRetraso + ' días de mora'}"></span>
+                                 </div>
+                             </td>
+                             <td>
+                                 <a th:href="@{/financing/detail/{id}(id=${plan.id})}" class="btn btn-primary btn-sm" style="margin-bottom: 4px; display: inline-block;">
+                                     <i class="fa-solid fa-eye"></i> Ver Detalles / Pagos
+                                 </a>
+                                 <a th:if="${plan.estadoCredito == 'ATRASADO'}" th:href="${waUrls[planStat.index]}" target="_blank" class="btn btn-success btn-sm" style="background: #25D366; border-color: #25D366; color: #fff; display: inline-block; margin-bottom: 4px;" title="Notificar por WhatsApp">
+                                     <i class="fa-brands fa-whatsapp"></i> Notificar
+                                 </a>
+                             </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(plans)}">
+                            <td colspan="7" style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
+                                No se han registrado créditos de motocicletas todavía.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

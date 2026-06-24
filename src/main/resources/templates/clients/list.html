@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: html(title='Directorio de Clientes', pageTitle='Gestión de Clientes (CRM)', content=~{::#clients-list-content}, extraStyle=~{::style})}">
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #0f172a;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-blue-bg: #eff6ff;
+            --accent-emerald: #10b981;
+            --accent-emerald-bg: #ecfdf5;
+            --accent-orange: #f59e0b;
+            --accent-orange-bg: #fffbeb;
+            --accent-rose: #ef4444;
+            --accent-rose-bg: #fef2f2;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --sidebar-width: 260px;
+            --border-radius: 12px;
+            --transition-smooth: all 0.2s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* App Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .app-sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 40px;
+            letter-spacing: -0.5px;
+        }
+        .sidebar-logo i {
+            color: var(--accent-blue);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            color: #ffffff;
+        }
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-link.active {
+            background: #1e293b;
+            font-weight: 600;
+        }
+
+        .sidebar-user {
+            margin-top: auto;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-role {
+            font-size: 11px;
+            color: var(--accent-emerald);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .btn-logout {
+            margin-top: 10px;
+            display: inline-block;
+            color: #f87171;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-logout:hover {
+            text-decoration: underline;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            max-width: 1400px;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .input-search {
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 10px 18px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+        .input-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .app-sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 20px;
+            }
+        }
+
+        /* Clean Panel (White Card) */
+        .glass-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-smooth);
+        }
+        .glass-panel:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-hover);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        /* Tables (Shared) */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .custom-table th {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .custom-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .custom-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-clean {
+            background: var(--accent-emerald-bg);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .badge-late {
+            background: var(--accent-rose-bg);
+            color: var(--accent-rose);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="clients-list-content">
+        <div class="glass-panel">
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <i class="fa-solid fa-users"></i> Directorio General de Compradores
+            </h3>
+            
+            <div class="table-container" style="margin-top: 0;">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Cédula</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Planes Activos</th>
+                            <th>Saldo Deuda Total</th>
+                            <th>Estado Cartera</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="client : ${clients}">
+                            <td>
+                                <strong th:text="${client.nombreCompleto}" style="color: var(--text-primary); display: block;">Juan</strong>
+                                <span style="font-size: 11px; color: var(--text-muted);" th:text="${client.correo != null && !client.correo.isEmpty() ? client.correo : 'Sin correo'}">correo</span>
+                            </td>
+                            <td th:text="${client.cedula}">12345</td>
+                            <td th:text="${client.telefono}">300</td>
+                            <td th:text="${client.direccion}">Calle 123</td>
+                            <td th:text="${client.totalCreditos}">1</td>
+                            <td>
+                                <strong th:text="${'$' + #numbers.formatDecimal(client.saldoTotalPendiente, 1, 'POINT', 0, 'COMMA')}" style="color: var(--text-primary);">0.00</strong>
+                            </td>
+                            <td>
+                                <span th:if="${client.tieneMora}" class="status-badge badge-late">Mora Activa</span>
+                                <span th:unless="${client.tieneMora}" class="status-badge badge-clean">Al Día</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/clients/detail/{cedula}(cedula=${client.cedula})}" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-folder-open"></i> Ver Expediente
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(clients)}">
+                            <td colspan="8" style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                                <i class="fa-solid fa-users-slash" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
+                                No se han registrado clientes en el sistema.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

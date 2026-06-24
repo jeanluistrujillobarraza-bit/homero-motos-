@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: html(title='Resultados de Búsqueda', pageTitle='Resultados de Búsqueda', content=~{::#search-results-content}, extraStyle=~{::style})}">
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #0f172a;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-blue-bg: #eff6ff;
+            --accent-emerald: #10b981;
+            --accent-emerald-bg: #ecfdf5;
+            --accent-orange: #f59e0b;
+            --accent-orange-bg: #fffbeb;
+            --accent-rose: #ef4444;
+            --accent-rose-bg: #fef2f2;
+            --accent-purple: #8b5cf6;
+            --accent-purple-bg: #f5f3ff;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --sidebar-width: 260px;
+            --border-radius: 12px;
+            --transition-smooth: all 0.2s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Clean Panel (White Card) */
+        .glass-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-smooth);
+        }
+        .glass-panel:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* App Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .app-sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 40px;
+            letter-spacing: -0.5px;
+        }
+        .sidebar-logo i {
+            color: var(--accent-blue);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            color: #ffffff;
+        }
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-link.active {
+            background: #1e293b;
+            font-weight: 600;
+        }
+
+        .sidebar-user {
+            margin-top: auto;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-role {
+            font-size: 11px;
+            color: var(--accent-emerald);
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .btn-logout {
+            margin-top: 10px;
+            display: inline-block;
+            color: var(--accent-rose);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: var(--transition-smooth);
+        }
+        .btn-logout:hover {
+            text-decoration: underline;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            max-width: 1400px;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .input-search {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            transition: var(--transition-smooth);
+        }
+        .input-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: var(--accent-emerald);
+            color: #ffffff;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-hover);
+        }
+
+        .btn-danger {
+            background: var(--accent-rose);
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        /* Forms (Shared) */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* Tables (Shared) */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .custom-table th {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .custom-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .custom-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* Alerts (Shared) */
+        .alert {
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+        }
+        .alert-danger {
+            background: var(--accent-rose-bg);
+            color: var(--accent-rose);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .alert-success {
+            background: var(--accent-emerald-bg);
+            color: var(--accent-emerald);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Badges (Shared) */
+        .moto-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-disponible { background: var(--accent-emerald-bg); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-en-financiacion { background: var(--accent-blue-bg); color: var(--accent-blue); border: 1px solid rgba(37, 99, 235, 0.3); }
+        .badge-pago_vencido { background: var(--accent-rose-bg); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-pagada { background: var(--accent-emerald); color: #ffffff; }
+        .badge-vendida { background: #64748b; color: #ffffff; }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .app-sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 20px;
+            }
+        }
+
+        /* Search Results Specific Styles */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 1024px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .detail-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .detail-value.highlight {
+            color: var(--accent-blue);
+        }
+        .detail-value.emerald {
+            color: var(--accent-emerald);
+        }
+        .detail-value.orange {
+            color: var(--accent-orange);
+        }
+    </style>
+</head>
+<body>
+    <div id="search-results-content">
+        <!-- If it's a motorcycle with NO active credit -->
+        <div th:if="${info}" class="glass-panel" style="margin-bottom: 30px;">
+            <div class="alert alert-danger" th:text="${info}"></div>
+            <div style="display: flex; gap: 20px; align-items: center; margin-top: 15px;">
+                <div style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; background: #1e293b; display: flex; align-items: center; justify-content: center;">
+                    <img th:if="${motorcycle.fotoBase64 != null && !motorcycle.fotoBase64.isEmpty()}" th:src="${motorcycle.fotoBase64}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <i th:unless="${motorcycle.fotoBase64 != null && !motorcycle.fotoBase64.isEmpty()}" class="fa-solid fa-motorcycle" style="font-size: 32px; color: var(--text-secondary);"></i>
+                </div>
+                <div>
+                    <h3 style="color: var(--text-primary);" th:text="${motorcycle.marca + ' ' + motorcycle.modelo}">Honda</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px;">Placa: <strong th:text="${motorcycle.placa}">ABC</strong> | Estado: <strong th:text="${motorcycle.estado}" style="color: var(--accent-emerald);">DISPONIBLE</strong></p>
+                </div>
+                <div style="margin-left: auto;">
+                    <a th:if="${motorcycle.estado == 'DISPONIBLE'}" th:href="@{/financing/new(motorcycleId=${motorcycle.id})}" class="btn btn-success glowing-btn">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Financiar Vehículo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- If multiple results are found -->
+        <div class="glass-panel" th:if="${results}">
+            <h3 class="detail-section-title">Financiamientos Encontrados para "<span th:text="${query}">query</span>"</h3>
+            
+            <div class="table-container" style="margin-top: 0;">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Comprador</th>
+                            <th>Cédula</th>
+                            <th>Placa</th>
+                            <th>Vehículo</th>
+                            <th>Saldo Pendiente</th>
+                            <th>Estado Crédito</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="plan : ${results}">
+                            <td th:text="${plan.buyer.nombreCompleto}">Juan</td>
+                            <td th:text="${plan.buyer.cedula}">123</td>
+                            <td>
+                                <span class="moto-placa" th:text="${motos[planStat.index].placa}" style="margin: 0;">ABC</span>
+                            </td>
+                            <td th:text="${motos[planStat.index].marca + ' ' + motos[planStat.index].modelo}">Honda</td>
+                            <td th:text="${'$' + #numbers.formatDecimal(plan.saldoPendiente, 1, 'POINT', 0, 'COMMA')}">$0.00</td>
+                            <td>
+                                <span th:if="${plan.estadoCredito == 'PAGADO'}" class="moto-badge badge-pagada" style="position: static; font-size: 11px;">PAGADO</span>
+                                <span th:if="${plan.estadoCredito == 'AL_DIA' || plan.estadoCredito == 'AL_DIA_PAGO_HOY'}" class="moto-badge badge-disponible" style="position: static; font-size: 11px;">AL DÍA</span>
+                                <span th:if="${plan.estadoCredito == 'ATRASADO'}" class="moto-badge badge-en-financiacion" style="position: static; background: rgba(249,115,22,0.2); color: var(--accent-orange); border-color: var(--accent-orange); font-size: 11px;">ATRASADO</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/financing/detail/{id}(id=${plan.id})}" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-eye"></i> Ver Detalles
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a th:href="@{/}" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Volver al Dashboard
+            </a>
+        </div>
+    </div>
+</body>
+</html>

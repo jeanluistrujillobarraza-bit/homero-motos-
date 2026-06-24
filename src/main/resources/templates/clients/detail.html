@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: html(title='Perfil del Cliente', pageTitle='Expediente de Cliente', content=~{::#client-detail-content}, extraStyle=~{::style})}">
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #0f172a;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-blue-bg: #eff6ff;
+            --accent-emerald: #10b981;
+            --accent-emerald-bg: #ecfdf5;
+            --accent-orange: #f59e0b;
+            --accent-orange-bg: #fffbeb;
+            --accent-rose: #ef4444;
+            --accent-rose-bg: #fef2f2;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --sidebar-width: 260px;
+            --border-radius: 12px;
+            --transition-smooth: all 0.2s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* App Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .app-sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 40px;
+            letter-spacing: -0.5px;
+        }
+        .sidebar-logo i {
+            color: var(--accent-blue);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            color: #ffffff;
+        }
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-link.active {
+            background: #1e293b;
+            font-weight: 600;
+        }
+
+        .sidebar-user {
+            margin-top: auto;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-role {
+            font-size: 11px;
+            color: var(--accent-emerald);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .btn-logout {
+            margin-top: 10px;
+            display: inline-block;
+            color: #f87171;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-logout:hover {
+            text-decoration: underline;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            max-width: 1400px;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .input-search {
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 10px 18px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            transition: var(--transition-smooth);
+        }
+        .input-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .app-sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 20px;
+            }
+        }
+
+        /* Clean Panel (White Card) */
+        .glass-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-smooth);
+        }
+        .glass-panel:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-hover);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        /* Grid layouts */
+        .crm-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+        @media (max-width: 1024px) {
+            .crm-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .custom-table th {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .custom-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .moto-placa {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            background: var(--accent-blue-bg);
+            padding: 2px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .moto-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-disponible { background: var(--accent-emerald-bg); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-en-financiacion { background: var(--accent-blue-bg); color: var(--accent-blue); border: 1px solid rgba(37, 99, 235, 0.3); }
+        .badge-pago_vencido { background: var(--accent-rose-bg); color: var(--accent-rose); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-pagada { background: var(--accent-emerald); color: #ffffff; }
+
+        /* Stat boxes */
+        .stat-card {
+            border-left: 4px solid var(--accent-blue);
+        }
+        .stat-card.emerald { border-left-color: var(--accent-emerald); }
+        .stat-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="client-detail-content">
+        <div style="margin-bottom: 20px;">
+            <a th:href="@{/clients}" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Volver al Directorio
+            </a>
+        </div>
+
+        <div class="crm-grid">
+            <!-- Client Info Card -->
+            <div style="display: flex; flex-direction: column; gap: 30px;">
+                <div class="glass-panel">
+                    <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                        <i class="fa-solid fa-user-tie"></i> Ficha del Cliente
+                    </h3>
+                    
+                    <div class="detail-row"><span class="detail-label">Nombre Completo:</span><span class="detail-value" th:text="${buyer.nombreCompleto}">Juan Pérez</span></div>
+                    <div class="detail-row"><span class="detail-label">Cédula:</span><span class="detail-value" th:text="${buyer.cedula}">12345</span></div>
+                    <div class="detail-row"><span class="detail-label">Teléfono:</span><span class="detail-value" th:text="${buyer.telefono}">300</span></div>
+                    <div class="detail-row"><span class="detail-label">Dirección:</span><span class="detail-value" th:text="${buyer.direccion}">Calle 1</span></div>
+                    <div class="detail-row"><span class="detail-label">Correo:</span><span class="detail-value" th:text="${buyer.correo != null && !buyer.correo.isEmpty() ? buyer.correo : 'No registrado'}">correo</span></div>
+                    <div class="detail-row"><span class="detail-label">Primer Registro:</span><span class="detail-value" th:text="${#temporals.format(buyer.fechaCompra, 'dd/MM/yyyy')}">12/06/2026</span></div>
+                    
+                    <div style="margin-top: 15px;">
+                        <span class="detail-label" style="display: block; margin-bottom: 6px;">Observaciones:</span>
+                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; background: var(--bg-primary); padding: 10px; border-radius: 6px;" th:text="${buyer.observaciones != null && !buyer.observaciones.isEmpty() ? buyer.observaciones : 'Ninguna'}">Obs</p>
+                    </div>
+                </div>
+
+                <!-- Financial Summary Cards -->
+                <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                    <div class="glass-panel stat-card">
+                        <div class="stat-title">Saldo Total Adeudado</div>
+                        <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(totalDeuda, 1, 'POINT', 0, 'COMMA')}">$0.00</div>
+                    </div>
+                    <div class="glass-panel stat-card emerald">
+                        <div class="stat-title">Total Abonos Realizados</div>
+                        <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(totalPagado, 1, 'POINT', 0, 'COMMA')}">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Credit History list -->
+            <div class="glass-panel">
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <i class="fa-solid fa-file-signature"></i> Historial de Créditos y Compras
+                </h3>
+
+                <div class="table-container" style="margin-top: 0;">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Vehículo</th>
+                                <th>Placa</th>
+                                <th>Financiado</th>
+                                <th>Saldo Pendiente</th>
+                                <th>Cuotas</th>
+                                <th>Estado Crédito</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="plan, planStat : ${plans}">
+                                <td>
+                                    <strong th:text="${motos[planStat.index].marca + ' ' + motos[planStat.index].modelo}" style="color: var(--text-primary); display: block;">Honda</strong>
+                                    <span style="font-size: 11px; color: var(--text-secondary);" th:text="${'Frecuencia: ' + plan.frecuenciaPago}">Mensual</span>
+                                </td>
+                                <td>
+                                    <span class="moto-placa" th:text="${motos[planStat.index].placa}">ABC</span>
+                                </td>
+                                <td th:text="${'$' + #numbers.formatDecimal(plan.saldoFinanciado, 1, 'POINT', 0, 'COMMA')}">$0.00</td>
+                                <td>
+                                    <strong th:text="${'$' + #numbers.formatDecimal(plan.saldoPendiente, 1, 'POINT', 0, 'COMMA')}">$0.00</strong>
+                                </td>
+                                <td th:text="${plan.cuotasPagadas + ' / ' + plan.cuotasTotales}">12</td>
+                                <td>
+                                    <span th:if="${plan.estadoCredito == 'PAGADO'}" class="moto-badge badge-pagada">Pagado</span>
+                                    <span th:if="${plan.estadoCredito == 'AL_DIA' || plan.estadoCredito == 'AL_DIA_PAGO_HOY'}" class="moto-badge badge-disponible">Al Día</span>
+                                    <span th:if="${plan.estadoCredito == 'ATRASADO'}" class="moto-badge badge-pago_vencido">Atrasado</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/financing/detail/{id}(id=${plan.id})}" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">
+                                        <i class="fa-solid fa-eye"></i> Detalles
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
