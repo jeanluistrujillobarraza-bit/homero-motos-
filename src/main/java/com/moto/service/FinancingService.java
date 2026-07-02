@@ -57,7 +57,7 @@ public class FinancingService {
 
         // Check if down payment was registered and add it as initial payment record if > 0
         if (cuotaInicial != null && cuotaInicial > 0) {
-            Payment initialPayment = new Payment(plan.getId(), LocalDateTime.now(), cuotaInicial, 0, 
+            Payment initialPayment = new Payment(plan.getId(), LocalDateTime.now(java.time.ZoneId.of("America/Bogota")), cuotaInicial, 0, 
                                                  "EFECTIVO", "Cuota Inicial de la compra", "SYSTEM");
             paymentRepository.save(initialPayment);
         }
@@ -77,7 +77,7 @@ public class FinancingService {
         
         Payment payment = new Payment();
         payment.setFinancingPlanId(plan.getId());
-        payment.setFechaPago(LocalDateTime.now());
+        payment.setFechaPago(LocalDateTime.now(java.time.ZoneId.of("America/Bogota")));
         payment.setValorPagado(valorPagado);
         payment.setNumeroCuota(nextInstallmentNumber);
         payment.setMetodoPago(metodoPago);
@@ -120,7 +120,7 @@ public class FinancingService {
     }
 
     public static LocalDate getDueDateOfInstallment(LocalDate startDate, int installmentNum, String frequency) {
-        if (startDate == null) return LocalDate.now();
+        if (startDate == null) return LocalDate.now(java.time.ZoneId.of("America/Bogota"));
         long offset = installmentNum - 1;
         switch (frequency.toUpperCase()) {
             case "DIARIA":
@@ -143,7 +143,7 @@ public class FinancingService {
             return;
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
         int expectedInstallments = 0;
         for (int i = 1; i <= plan.getCuotasTotales(); i++) {
             LocalDate dueDate = getDueDateOfInstallment(plan.getFechaInicio(), i, plan.getFrecuenciaPago());

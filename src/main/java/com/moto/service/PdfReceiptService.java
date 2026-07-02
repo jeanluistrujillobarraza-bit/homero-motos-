@@ -216,7 +216,7 @@ public class PdfReceiptService {
     }
 
     public LocalDate calculateNextPaymentDate(LocalDate start, int cuotasPagadas, String frequency) {
-        if (start == null) return LocalDate.now();
+        if (start == null) return LocalDate.now(java.time.ZoneId.of("America/Bogota"));
         int count = cuotasPagadas + 1;
         if (frequency == null) return start.plusMonths(count);
         switch (frequency.toUpperCase()) {

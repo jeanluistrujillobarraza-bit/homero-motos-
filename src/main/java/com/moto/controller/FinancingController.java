@@ -104,7 +104,7 @@ public class FinancingController {
 
         model.addAttribute("motorcycle", moto);
         model.addAttribute("buyer", new Buyer());
-        model.addAttribute("fechaHoy", LocalDate.now().toString());
+        model.addAttribute("fechaHoy", LocalDate.now(java.time.ZoneId.of("America/Bogota")).toString());
         return "financing/new";
     }
 
@@ -143,7 +143,7 @@ public class FinancingController {
 
     private LocalDate parseLocalDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
-            return LocalDate.now();
+            return LocalDate.now(java.time.ZoneId.of("America/Bogota"));
         }
         try {
             return LocalDate.parse(dateStr); // Intenta yyyy-MM-dd
@@ -153,7 +153,7 @@ public class FinancingController {
                 java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 return LocalDate.parse(dateStr, dtf);
             } catch (Exception ex) {
-                return LocalDate.now(); // Fallback a hoy
+                return LocalDate.now(java.time.ZoneId.of("America/Bogota")); // Fallback a hoy
             }
         }
     }

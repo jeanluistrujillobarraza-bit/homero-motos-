@@ -56,17 +56,17 @@ public class PaymentController {
         // Sort by payment date descending
         all.sort((p1, p2) -> p2.getFechaPago().compareTo(p1.getFechaPago()));
 
-        java.time.LocalDateTime cutoff = java.time.LocalDateTime.now();
+        java.time.LocalDateTime cutoff = java.time.LocalDateTime.now(java.time.ZoneId.of("America/Bogota"));
         boolean filterActive = false;
         
         if ("HOY".equalsIgnoreCase(filter)) {
-            cutoff = java.time.LocalDate.now().atStartOfDay();
+            cutoff = java.time.LocalDate.now(java.time.ZoneId.of("America/Bogota")).atStartOfDay();
             filterActive = true;
         } else if ("QUINCENA".equalsIgnoreCase(filter)) {
-            cutoff = java.time.LocalDate.now().minusDays(15).atStartOfDay();
+            cutoff = java.time.LocalDate.now(java.time.ZoneId.of("America/Bogota")).minusDays(15).atStartOfDay();
             filterActive = true;
         } else if ("MES".equalsIgnoreCase(filter)) {
-            cutoff = java.time.LocalDate.now().minusMonths(1).atStartOfDay();
+            cutoff = java.time.LocalDate.now(java.time.ZoneId.of("America/Bogota")).minusMonths(1).atStartOfDay();
             filterActive = true;
         }
 

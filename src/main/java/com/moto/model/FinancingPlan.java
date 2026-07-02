@@ -68,7 +68,7 @@ public class FinancingPlan {
     }
 
     public static LocalDate calculateEstimatedEndDate(LocalDate start, int totalInstallments, String frequency) {
-        if (start == null) return LocalDate.now();
+        if (start == null) return LocalDate.now(java.time.ZoneId.of("America/Bogota"));
         switch (frequency.toUpperCase()) {
             case "DIARIA":
                 return start.plusDays(totalInstallments);

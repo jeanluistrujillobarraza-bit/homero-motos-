@@ -30,6 +30,9 @@ public class DashboardController {
     @Autowired
     private AuditLogRepository auditLogRepository;
 
+    @Autowired
+    private com.moto.service.FinancingService financingService;
+
     @GetMapping("/")
     public String dashboard(Model model) {
         // Motorcycle stats
@@ -42,6 +45,17 @@ public class DashboardController {
 
         // Financing stats
         List<FinancingPlan> allPlans = financingPlanRepository.findAll();
+        for (FinancingPlan plan : allPlans) {
+            if (!"PAGADO".equals(plan.getEstadoCredito())) {
+                try {
+                    financingService.updatePaymentStatus(plan);
+                    financingPlanRepository.save(plan);
+                } catch (Exception e) {
+                    // Ignore or log
+                }
+            }
+        }
+
         long creditosActivos = allPlans.stream().filter(p -> !"PAGADO".equals(p.getEstadoCredito())).count();
         long creditosFinalizados = allPlans.stream().filter(p -> "PAGADO".equals(p.getEstadoCredito())).count();
 
@@ -66,7 +80,7 @@ public class DashboardController {
                 .sum();
 
         // Payments today
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
         List<Payment> todayPayments = paymentRepository.findByFechaPagoBetween(
                 today.atStartOfDay(), today.plusDays(1).atStartOfDay()
         );

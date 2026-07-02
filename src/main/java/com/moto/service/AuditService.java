@@ -27,7 +27,7 @@ public class AuditService {
             username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         }
 
-        AuditLog log = new AuditLog(username, action, details, LocalDateTime.now());
+        AuditLog log = new AuditLog(username, action, details, LocalDateTime.now(java.time.ZoneId.of("America/Bogota")));
         auditLogRepository.save(log);
     }
 
