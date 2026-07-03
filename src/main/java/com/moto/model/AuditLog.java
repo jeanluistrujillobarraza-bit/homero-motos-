@@ -13,6 +13,9 @@ public class AuditLog {
     private String detalles;
     private LocalDateTime fecha;
 
+    private String ipAddress;
+    private String deviceDetails;
+
     // Constructors
     public AuditLog() {}
 
@@ -21,6 +24,15 @@ public class AuditLog {
         this.accion = accion;
         this.detalles = detalles;
         this.fecha = fecha;
+    }
+
+    public AuditLog(String username, String accion, String detalles, LocalDateTime fecha, String ipAddress, String deviceDetails) {
+        this.username = username;
+        this.accion = accion;
+        this.detalles = detalles;
+        this.fecha = fecha;
+        this.ipAddress = ipAddress;
+        this.deviceDetails = deviceDetails;
     }
 
     // Getters and Setters
@@ -38,4 +50,10 @@ public class AuditLog {
 
     public LocalDateTime getFecha() { return fecha; }
     public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
+
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+
+    public String getDeviceDetails() { return deviceDetails; }
+    public void setDeviceDetails(String deviceDetails) { this.deviceDetails = deviceDetails; }
 }

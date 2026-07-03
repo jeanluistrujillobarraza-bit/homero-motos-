@@ -164,9 +164,14 @@
                         <i class="fa-solid fa-users"></i> Clientes
                     </a>
                 </li>
-                <li sec:authorize="hasRole('ROLE_ADMIN')">
+                <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')">
                     <a th:href="@{/users}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/users') ? 'active' : ''}">
                         <i class="fa-solid fa-users-cog"></i> Usuarios
+                    </a>
+                </li>
+                <li sec:authorize="hasRole('ROLE_SUPER_ADMIN')">
+                    <a th:href="@{/superadmin}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/superadmin') ? 'active' : ''}">
+                        <i class="fa-solid fa-key"></i> Súper Admin
                     </a>
                 </li>
             </ul>

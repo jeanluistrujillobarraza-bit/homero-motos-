@@ -38,11 +38,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/hm1.gif", "/hmfondo.jpg").permitAll()
-                .requestMatchers("/users/**").hasRole("ADMIN")
-                .requestMatchers("/motorcycles/delete/**").hasRole("ADMIN")
-                .requestMatchers("/financing/delete/**").hasRole("ADMIN")
-                .requestMatchers("/payments/edit", "/payments/delete").hasRole("ADMIN")
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/hm1.gif", "/hmfondo.jpg", "/maintenance").permitAll()
+                .requestMatchers("/superadmin/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/motorcycles/delete/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/financing/delete/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/payments/edit", "/payments/delete").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

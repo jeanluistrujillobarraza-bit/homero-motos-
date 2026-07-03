@@ -1,7 +1,11 @@
 package com.moto.controller;
 
 import com.moto.model.Motorcycle;
+import com.moto.model.FinancingPlan;
+import com.moto.model.Payment;
 import com.moto.repository.MotorcycleRepository;
+import com.moto.repository.FinancingPlanRepository;
+import com.moto.repository.PaymentRepository;
 import com.moto.service.AuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/motorcycles")
@@ -21,14 +26,19 @@ public class MotorcycleController {
     private MotorcycleRepository motorcycleRepository;
 
     @Autowired
+    private FinancingPlanRepository financingPlanRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
     private AuditService auditService;
 
     @GetMapping
     public String listMotorcycles(Model model) {
-        java.util.List<Motorcycle> list = motorcycleRepository.findAll();
-        for (Motorcycle m : list) {
-            System.out.println("[DIAGNOSTIC] Motorcycle - Placa: " + m.getPlaca() + ", ID: " + m.getId() + ", Estado: " + m.getEstado());
-        }
+        java.util.List<Motorcycle> list = motorcycleRepository.findAll().stream()
+                .filter(m -> !m.isDeleted())
+                .collect(Collectors.toList());
         model.addAttribute("motorcycles", list);
         return "motorcycles/list";
     }
@@ -43,13 +53,8 @@ public class MotorcycleController {
     public String saveMotorcycle(@ModelAttribute("motorcycle") Motorcycle motorcycle,
                                  @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
                                  Model model) {
-        
         if (motorcycle.getId() == null || motorcycle.getId().trim().isEmpty()) {
             motorcycle.setId(null);
-        }
-        
-        // Validation of duplicate fields
-        if (motorcycle.getId() == null) {
             // New motorcycle checks
             if (motorcycleRepository.findByPlaca(motorcycle.getPlaca()).isPresent()) {
                 model.addAttribute("error", "La placa ya está registrada en el sistema.");
@@ -91,6 +96,9 @@ public class MotorcycleController {
                 if (motorcycle.getEstado() == null) {
                     motorcycle.setEstado(original.getEstado());
                 }
+                motorcycle.setDeleted(original.isDeleted());
+                motorcycle.setDestacado(original.isDestacado());
+                motorcycle.setHidden(original.isHidden());
             }
         }
 

@@ -45,4 +45,21 @@ public class User {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    private boolean suspended = false;
+    private java.time.LocalDateTime blockedUntil;
+    private java.time.LocalDateTime lastLogin;
+    private Integer failedAttempts = 0;
+
+    public boolean isSuspended() { return suspended; }
+    public void setSuspended(boolean suspended) { this.suspended = suspended; }
+
+    public java.time.LocalDateTime getBlockedUntil() { return blockedUntil; }
+    public void setBlockedUntil(java.time.LocalDateTime blockedUntil) { this.blockedUntil = blockedUntil; }
+
+    public java.time.LocalDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(java.time.LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
+
+    public Integer getFailedAttempts() { return failedAttempts; }
+    public void setFailedAttempts(Integer failedAttempts) { this.failedAttempts = failedAttempts; }
 }

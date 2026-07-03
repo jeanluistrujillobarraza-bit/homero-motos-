@@ -23,7 +23,7 @@ public class DataSeeder implements CommandLineRunner {
         admin.setUsername("cristian");
         admin.setPassword(passwordEncoder.encode("barraza1998"));
         admin.setFullName("Administrador del Concesionario");
-        admin.setRole("ROLE_ADMIN");
+        admin.setRole("ROLE_SUPER_ADMIN");
         admin.setActive(true);
         userRepository.save(admin);
         System.out.println("Upserted default admin: cristian / barraza1998");
