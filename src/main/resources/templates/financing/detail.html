@@ -557,10 +557,10 @@
                                             <a th:href="@{/payments/receipt/{id}(id=${pay.id})}" target="_blank" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 11px;" title="Ver Recibo PDF">
                                                 <i class="fa-solid fa-file-pdf"></i>
                                             </a>
-                                            <button sec:authorize="hasRole('ROLE_ADMIN')" type="button" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;" th:onclick="openEditPaymentModal([[${pay.id}]], [[${pay.valorPagado}]], [[${pay.metodoPago}]], [[${pay.observaciones}]])" title="Editar Pago">
+                                            <button sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')" type="button" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;" th:onclick="openEditPaymentModal([[${pay.id}]], [[${pay.valorPagado}]], [[${pay.metodoPago}]], [[${pay.observaciones}]])" title="Editar Pago">
                                                 <i class="fa-solid fa-pen"></i>
                                             </button>
-                                            <form sec:authorize="hasRole('ROLE_ADMIN')" th:action="@{/payments/delete}" method="post" style="display: inline;" onsubmit="return confirm('¿Está seguro de eliminar este pago? El saldo se recalculará.');">
+                                            <form sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')" th:action="@{/payments/delete}" method="post" style="display: inline;" onsubmit="return confirm('¿Está seguro de eliminar este pago? El saldo se recalculará.');">
                                                 <input type="hidden" name="paymentId" th:value="${pay.id}">
                                                 <input type="hidden" name="planId" th:value="${plan.id}">
                                                 <button type="submit" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 11px; background: var(--accent-rose);" title="Eliminar Pago">
