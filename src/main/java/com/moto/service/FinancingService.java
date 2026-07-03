@@ -121,7 +121,7 @@ public class FinancingService {
 
     public static LocalDate getDueDateOfInstallment(LocalDate startDate, int installmentNum, String frequency) {
         if (startDate == null) return LocalDate.now(java.time.ZoneId.of("America/Bogota"));
-        long offset = installmentNum - 1;
+        long offset = installmentNum;
         switch (frequency.toUpperCase()) {
             case "DIARIA":
                 return startDate.plusDays(offset);
