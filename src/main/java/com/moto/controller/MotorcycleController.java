@@ -128,18 +128,78 @@ public class MotorcycleController {
     }
 
     @GetMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
     public String deleteMotorcycle(@PathVariable("id") String id, Model model) {
         Motorcycle motorcycle = motorcycleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
-        
+
+        boolean isSuperAdmin = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> "ROLE_SUPER_ADMIN".equals(a.getAuthority()));
+
         if ("EN_FINANCIACION".equals(motorcycle.getEstado())) {
-            // Cannot delete active financing
-            return "redirect:/motorcycles?error=No+se+puede+eliminar+una+moto+bajo+financiacion+activa";
+            if (!isSuperAdmin) {
+                return "redirect:/motorcycles?error=No+se+puede+eliminar+una+moto+bajo+financiacion+activa";
+            } else {
+                // Super Admin: delete associated financing plan and its payments
+                financingPlanRepository.findByMotorcycleId(id).ifPresent(plan -> {
+                    paymentRepository.deleteAll(paymentRepository.findByFinancingPlanIdOrderByFechaPagoAsc(plan.getId()));
+                    financingPlanRepository.delete(plan);
+                });
+            }
         }
 
-        motorcycleRepository.deleteById(id);
-        auditService.log("ELIMINAR_MOTOCICLETA", "Eliminada motocicleta con placa: " + motorcycle.getPlaca());
+        // Soft delete
+        motorcycle.setDeleted(true);
+        motorcycleRepository.save(motorcycle);
+
+        auditService.log("ELIMINAR_MOTOCICLETA", "Eliminada (papelera) motocicleta con placa: " + motorcycle.getPlaca());
         return "redirect:/motorcycles";
+    }
+
+    @GetMapping("/duplicate/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    public String duplicateMotorcycle(@PathVariable("id") String id) {
+        Motorcycle m = motorcycleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
+        Motorcycle duplicate = new Motorcycle();
+        duplicate.setPlaca(m.getPlaca() + "_COPIA");
+        duplicate.setMarca(m.getMarca());
+        duplicate.setModelo(m.getModelo());
+        duplicate.setAnio(m.getAnio());
+        duplicate.setColor(m.getColor());
+        duplicate.setCilindraje(m.getCilindraje());
+        duplicate.setVin(m.getVin() + "_C");
+        duplicate.setNumeroMotor(m.getNumeroMotor() + "_C");
+        duplicate.setPrecioVenta(m.getPrecioVenta());
+        duplicate.setObservaciones("Copia de: " + m.getPlaca());
+        duplicate.setEstado("DISPONIBLE");
+        duplicate.setFotoBase64(m.getFotoBase64());
+        motorcycleRepository.save(duplicate);
+        auditService.log("DUPLICAR_MOTOCICLETA", "Duplicada motocicleta: " + m.getPlaca() + " a copia: " + duplicate.getPlaca());
+        return "redirect:/motorcycles?success=Motocicleta+duplicada+con+exito";
+    }
+
+    @GetMapping("/restore-financing/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    public String restoreFinancing(@PathVariable("id") String id) {
+        Motorcycle motorcycle = motorcycleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
+
+        if ("EN_FINANCIACION".equals(motorcycle.getEstado())) {
+            // Delete associated financing plan and payments
+            financingPlanRepository.findByMotorcycleId(id).ifPresent(plan -> {
+                paymentRepository.deleteAll(paymentRepository.findByFinancingPlanIdOrderByFechaPagoAsc(plan.getId()));
+                financingPlanRepository.delete(plan);
+            });
+
+            // Set state back to DISPONIBLE
+            motorcycle.setEstado("DISPONIBLE");
+            motorcycleRepository.save(motorcycle);
+
+            auditService.log("RESTAURAR_FINANCIACION", "Restaurada financiación de la motocicleta con placa: " + motorcycle.getPlaca());
+            return "redirect:/motorcycles?successMessage=Financiacion+restaurada+con+exito.+La+motocicleta+esta+disponible+para+financiar.";
+        }
+
+        return "redirect:/motorcycles?error=La+motocicleta+no+esta+bajo+financiacion+activa";
     }
 }

@@ -549,16 +549,25 @@
                         <a th:unless="${moto.estado == 'DISPONIBLE'}" th:href="@{/financing/search(query=${moto.placa})}" class="btn btn-secondary btn-sm" style="flex: 1;">
                             <i class="fa-solid fa-eye"></i> Ver Crédito
                         </a>
+                        <!-- Restore Financing (Admin/Super Admin only) -->
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')"
+                           th:unless="${moto.estado == 'DISPONIBLE'}" 
+                           th:href="@{/motorcycles/restore-financing/{id}(id=${moto.id})}" 
+                           class="btn btn-warning btn-sm" 
+                           style="background: #f59e0b; border-color: #f59e0b; color: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 4px 8px; font-size: 12px; text-decoration: none; border-radius: 6px;"
+                           onclick="return confirm('¿Está seguro de que desea restaurar la financiación de esta motocicleta? Esta acción eliminará permanentemente el crédito actual y sus pagos, y la moto volverá a estar disponible para financiar.');">
+                            <i class="fa-solid fa-rotate-left"></i> Restaurar
+                        </a>
                         <!-- Edit -->
                         <a th:href="@{/motorcycles/edit/{id}(id=${moto.id})}" class="btn btn-secondary btn-sm" title="Editar">
                             <i class="fa-solid fa-pen"></i>
                         </a>
-                        <!-- Delete (Admin only) -->
-                        <a sec:authorize="hasRole('ROLE_ADMIN')" 
-                           th:if="${moto.estado != 'EN_FINANCIACION'}"
+                        <!-- Delete (Admin / Super Admin) -->
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')" 
+                           th:if="${#authorization.expression('hasRole(''ROLE_SUPER_ADMIN'')') or moto.estado != 'EN_FINANCIACION'}"
                            th:href="@{/motorcycles/delete/{id}(id=${moto.id})}" 
                            class="btn btn-danger btn-sm" 
-                           onclick="return confirm('¿Está seguro de que desea eliminar esta motocicleta? Esta acción no se puede deshacer.');" 
+                           onclick="return confirm('¿Está seguro de que desea eliminar esta motocicleta? Si está financiada, se eliminará el crédito y todos sus pagos asociados.');" 
                            title="Eliminar">
                             <i class="fa-solid fa-trash"></i>
                         </a>
