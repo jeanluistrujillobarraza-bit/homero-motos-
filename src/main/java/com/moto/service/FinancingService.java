@@ -304,4 +304,63 @@ public class FinancingService {
         updatePaymentStatus(plan);
         financingPlanRepository.save(plan);
     }
+
+    public void updateFinancingPlanAndBuyer(String planId, Buyer newBuyer, 
+                                            Double valorTotal, Double cuotaInicial, 
+                                            Integer cuotasTotales, Double valorCuota, 
+                                            String frecuenciaPago, LocalDate fechaInicio) {
+        FinancingPlan plan = financingPlanRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("Plan de financiación no encontrado"));
+
+        // 1. Update Buyer details
+        Buyer buyer = plan.getBuyer();
+        if (buyer == null) {
+            buyer = new Buyer();
+        }
+        buyer.setNombreCompleto(newBuyer.getNombreCompleto());
+        buyer.setCedula(newBuyer.getCedula());
+        buyer.setTelefono(newBuyer.getTelefono());
+        buyer.setDireccion(newBuyer.getDireccion());
+        buyer.setCorreo(newBuyer.getCorreo());
+        buyer.setFechaCompra(newBuyer.getFechaCompra());
+        buyer.setObservaciones(newBuyer.getObservaciones());
+        plan.setBuyer(buyer);
+
+        // 2. Update Plan details
+        plan.setValorTotal(valorTotal);
+        plan.setCuotaInicial(cuotaInicial != null ? cuotaInicial : 0.0);
+        plan.setSaldoFinanciado(valorTotal - plan.getCuotaInicial());
+        plan.setCuotasTotales(cuotasTotales);
+        plan.setValorCuota(valorCuota);
+        plan.setFrecuenciaPago(frecuenciaPago);
+        plan.setFechaInicio(fechaInicio);
+        plan.setFechaFinEstimada(FinancingPlan.calculateEstimatedEndDate(fechaInicio, cuotasTotales, frecuenciaPago));
+        plan.setFechaFinActualizada(plan.getFechaFinEstimada());
+
+        // 3. Update the Cuota Inicial payment record (numeroCuota == 0)
+        List<Payment> payments = paymentRepository.findByFinancingPlanIdOrderByFechaPagoAsc(planId);
+        Optional<Payment> initialPaymentOpt = payments.stream()
+                .filter(p -> p.getNumeroCuota() == 0)
+                .findFirst();
+
+        double initialPaymentVal = cuotaInicial != null ? cuotaInicial : 0.0;
+        if (initialPaymentOpt.isPresent()) {
+            Payment initialPayment = initialPaymentOpt.get();
+            if (initialPaymentVal > 0) {
+                initialPayment.setValorPagado(initialPaymentVal);
+                paymentRepository.save(initialPayment);
+            } else {
+                paymentRepository.delete(initialPayment);
+            }
+        } else if (initialPaymentVal > 0) {
+            Payment initialPayment = new Payment(planId, LocalDateTime.now(java.time.ZoneId.of("America/Bogota")), initialPaymentVal, 0, 
+                                                 "EFECTIVO", "Cuota Inicial de la compra", "SYSTEM");
+            paymentRepository.save(initialPayment);
+        }
+
+        // 4. Recalculate plan payments & status
+        recalculatePlanPayments(plan);
+        
+        auditService.log("EDICION_PLAN", "Plan ID: " + planId + " editado por administrador. Datos del comprador y condiciones del plan actualizados.");
+    }
 }

@@ -295,4 +295,36 @@ public class FinancingController {
             return new org.springframework.http.ResponseEntity<>(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/edit")
+    public String editFinancingPlan(@RequestParam("planId") String planId,
+                                    @RequestParam("nombreCompleto") String nombreCompleto,
+                                    @RequestParam("cedula") String cedula,
+                                    @RequestParam("telefono") String telefono,
+                                    @RequestParam("direccion") String direccion,
+                                    @RequestParam(value = "correo", required = false) String correo,
+                                    @RequestParam("fechaCompra") String fechaCompraStr,
+                                    @RequestParam(value = "observaciones", required = false) String observaciones,
+                                    @RequestParam("valorTotal") Double valorTotal,
+                                    @RequestParam(value = "cuotaInicial", defaultValue = "0") Double cuotaInicial,
+                                    @RequestParam("cuotasTotales") Integer cuotasTotales,
+                                    @RequestParam("valorCuota") Double valorCuota,
+                                    @RequestParam("frecuenciaPago") String frecuenciaPago,
+                                    @RequestParam("fechaInicio") String fechaInicioStr) {
+        LocalDate fechaCompra = parseLocalDate(fechaCompraStr);
+        LocalDate fechaInicio = parseLocalDate(fechaInicioStr);
+        try {
+            Buyer buyer = new Buyer(nombreCompleto, cedula, telefono, direccion, correo, fechaCompra, observaciones);
+            financingService.updateFinancingPlanAndBuyer(planId, buyer, valorTotal, cuotaInicial, 
+                                                         cuotasTotales, valorCuota, frecuenciaPago, fechaInicio);
+            return "redirect:/financing/detail/" + planId + "?success=Plan+actualizado+correctamente";
+        } catch (Exception e) {
+            log.error("Error al editar plan de financiación", e);
+            try {
+                return "redirect:/financing/detail/" + planId + "?error=Error+al+actualizar+el+plan:+" + org.springframework.web.util.UriUtils.encode(e.getMessage(), "UTF-8");
+            } catch (Exception ex) {
+                return "redirect:/financing/detail/" + planId + "?error=Error+al+actualizar+el+plan";
+            }
+        }
+    }
 }
