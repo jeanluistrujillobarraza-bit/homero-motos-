@@ -93,7 +93,7 @@ public class DashboardController {
         // Audit Logs & Recent Payments
         model.addAttribute("totalMotos", totalMotos);
         model.addAttribute("disponibles", disponibles);
-        model.addAttribute("vendidas", vendidas + enFinanciacion + pagadas); // Total sold
+        model.addAttribute("vendidas", vendidas + pagadas); // Total sold
         model.addAttribute("creditosActivos", creditosActivos);
         model.addAttribute("creditosFinalizados", creditosFinalizados);
         model.addAttribute("dineroTotalRecaudado", dineroTotalRecaudado);
