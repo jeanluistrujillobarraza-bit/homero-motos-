@@ -185,19 +185,38 @@ public class MotorcycleController {
         Motorcycle motorcycle = motorcycleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
 
-        if ("EN_FINANCIACION".equals(motorcycle.getEstado())) {
-            // Delete associated financing plan and payments
-            financingPlanRepository.findByMotorcycleId(id).ifPresent(plan -> {
-                paymentRepository.deleteAll(paymentRepository.findByFinancingPlanIdOrderByFechaPagoAsc(plan.getId()));
-                financingPlanRepository.delete(plan);
-            });
+        if ("EN_FINANCIACION".equals(motorcycle.getEstado()) || "PAGADA".equals(motorcycle.getEstado())) {
+            Optional<FinancingPlan> planOpt = financingPlanRepository.findByMotorcycleId(id);
+            if (planOpt.isPresent()) {
+                FinancingPlan plan = planOpt.get();
+                // Delete all payments except down payment (numeroCuota == 0)
+                java.util.List<Payment> payments = paymentRepository.findByFinancingPlanIdOrderByFechaPagoAsc(plan.getId());
+                for (Payment p : payments) {
+                    if (p.getNumeroCuota() != null && p.getNumeroCuota() > 0) {
+                        paymentRepository.delete(p);
+                    }
+                }
 
-            // Set state back to DISPONIBLE
-            motorcycle.setEstado("DISPONIBLE");
-            motorcycleRepository.save(motorcycle);
+                // Reset financing plan values
+                double cuotaInicial = plan.getCuotaInicial() != null ? plan.getCuotaInicial() : 0.0;
+                plan.setTotalPagado(cuotaInicial);
+                plan.setSaldoPendiente(plan.getValorTotal() - cuotaInicial);
+                plan.setCuotasPagadas(0);
+                plan.setCuotasRestantes(plan.getCuotasTotales());
+                plan.setPorcentajeCancelado((cuotaInicial / plan.getValorTotal()) * 100.0);
+                plan.setEstadoCredito("AL_DIA");
+                plan.setCuotasAtrasadas(0);
+                plan.setDiasRetraso(0L);
+                plan.setValorTotalAdeudado(0.0);
+                financingPlanRepository.save(plan);
 
-            auditService.log("RESTAURAR_FINANCIACION", "Restaurada financiación de la motocicleta con placa: " + motorcycle.getPlaca());
-            return "redirect:/motorcycles?successMessage=Financiacion+restaurada+con+exito.+La+motocicleta+esta+disponible+para+financiar.";
+                // Set motorcycle state back to EN_FINANCIACION
+                motorcycle.setEstado("EN_FINANCIACION");
+                motorcycleRepository.save(motorcycle);
+
+                auditService.log("RESTAURAR_FINANCIACION", "Restaurada financiación de la motocicleta con placa: " + motorcycle.getPlaca());
+                return "redirect:/motorcycles?successMessage=Financiacion+restaurada+con+exito.+El+saldo+y+los+pagos+se+han+reiniciado.";
+            }
         }
 
         return "redirect:/motorcycles?error=La+motocicleta+no+esta+bajo+financiacion+activa";

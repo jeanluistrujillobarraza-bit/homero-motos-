@@ -36,7 +36,9 @@ public class DashboardController {
     @GetMapping("/")
     public String dashboard(Model model) {
         // Motorcycle stats
-        List<Motorcycle> allMotos = motorcycleRepository.findAll();
+        List<Motorcycle> allMotos = motorcycleRepository.findAll().stream()
+                .filter(m -> !m.isDeleted())
+                .collect(java.util.stream.Collectors.toList());
         long totalMotos = allMotos.size();
         long disponibles = allMotos.stream().filter(m -> "DISPONIBLE".equals(m.getEstado())).count();
         long vendidas = allMotos.stream().filter(m -> "VENDIDA".equals(m.getEstado())).count();
