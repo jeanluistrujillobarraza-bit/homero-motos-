@@ -476,6 +476,13 @@
                                        onclick="return confirm('¿Está seguro de cambiar el estado de este usuario?');">
                                         Estado
                                     </a>
+                                    <!-- Delete user -->
+                                    <a th:href="@{/users/delete/{id}(id=${user.id})}" 
+                                       class="btn btn-danger btn-sm"
+                                       title="Eliminar"
+                                       onclick="return confirm('¿Está seguro de eliminar definitivamente a este usuario?');">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
                                 </td>
                             </tr>
                         </tbody>

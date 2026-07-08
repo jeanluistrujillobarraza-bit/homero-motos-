@@ -98,12 +98,36 @@ public class UserController {
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             // Don't disable default admin to prevent self-lockout
-            if ("admin".equals(user.getUsername())) {
+            if ("admin".equals(user.getUsername()) || "cristian".equals(user.getUsername())) {
                 return "redirect:/users?error=No+se+puede+desactivar+al+administrador+principal";
             }
             user.setActive(!user.isActive());
             userRepository.save(user);
             auditService.log("ESTADO_USUARIO", "Toggled estado del usuario: " + user.getUsername() + " a activo=" + user.isActive());
+        }
+        return "redirect:/users";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteUser(@PathVariable("id") String id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if ("cristian".equals(user.getUsername()) || "admin".equals(user.getUsername())) {
+                return "redirect:/users?error=No+se+puede+eliminar+al+administrador+principal";
+            }
+            
+            // Prevent self-deletion
+            Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                String currentUsername = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+                if (currentUsername.equals(user.getUsername())) {
+                    return "redirect:/users?error=No+se+puede+eliminar+a+si+mismo";
+                }
+            }
+            
+            userRepository.delete(user);
+            auditService.log("ELIMINACION_USUARIO", "Eliminado usuario: " + user.getUsername());
         }
         return "redirect:/users";
     }
