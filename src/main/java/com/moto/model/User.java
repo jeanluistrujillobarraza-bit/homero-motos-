@@ -62,4 +62,10 @@ public class User {
 
     public Integer getFailedAttempts() { return failedAttempts; }
     public void setFailedAttempts(Integer failedAttempts) { this.failedAttempts = failedAttempts; }
+
+    private String tenantId;
+
+    public String getTenantId() { return tenantId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 }
+

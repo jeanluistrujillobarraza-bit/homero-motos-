@@ -30,6 +30,14 @@ public class UserController {
         return "users/list";
     }
 
+    private String getCurrentTenantId() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof com.moto.service.CustomUserDetails) {
+            return ((com.moto.service.CustomUserDetails) auth.getPrincipal()).getTenantId();
+        }
+        return "default";
+    }
+
     @PostMapping("/save")
     public String saveUser(@ModelAttribute("newUser") User user, Model model) {
         if (user.getId() == null || user.getId().trim().isEmpty()) {
@@ -44,6 +52,13 @@ public class UserController {
             }
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setActive(true);
+            
+            if ("ROLE_BUSINESS_ADMIN".equals(user.getRole())) {
+                user.setTenantId("tenant_" + java.util.UUID.randomUUID().toString());
+            } else {
+                user.setTenantId(getCurrentTenantId());
+            }
+            
             userRepository.save(user);
             auditService.log("CREACION_USUARIO", "Creado usuario interno: " + user.getUsername() + " con rol: " + user.getRole());
         } else {

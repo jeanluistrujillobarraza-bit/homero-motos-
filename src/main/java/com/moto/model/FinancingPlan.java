@@ -180,4 +180,9 @@ public class FinancingPlan {
 
     public Double getValorTotalAdeudado() { return valorTotalAdeudado; }
     public void setValorTotalAdeudado(Double valorTotalAdeudado) { this.valorTotalAdeudado = valorTotalAdeudado; }
+
+    private String tenantId;
+
+    public String getTenantId() { return tenantId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 }

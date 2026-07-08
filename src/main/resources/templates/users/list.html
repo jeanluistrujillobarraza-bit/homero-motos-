@@ -413,6 +413,10 @@
             background: var(--accent-blue-bg);
             color: var(--accent-blue);
         }
+        .role-business-admin {
+            background: var(--accent-purple-bg);
+            color: var(--accent-purple);
+        }
         .detail-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -450,8 +454,8 @@
                                 <td th:text="${user.username}">admin</td>
                                 <td>
                                     <span class="role-badge" 
-                                          th:classappend="${user.role == 'ROLE_ADMIN' ? 'role-admin' : 'role-employee'}" 
-                                          th:text="${user.role == 'ROLE_ADMIN' ? 'ADMINISTRADOR' : 'EMPLEADO'}">
+                                          th:classappend="${user.role == 'ROLE_ADMIN' ? 'role-admin' : (user.role == 'ROLE_BUSINESS_ADMIN' ? 'role-business-admin' : 'role-employee')}" 
+                                          th:text="${user.role == 'ROLE_ADMIN' ? 'ADMINISTRADOR' : (user.role == 'ROLE_BUSINESS_ADMIN' ? 'ADMIN DE NEGOCIO' : 'EMPLEADO')}">
                                         ADMIN
                                     </span>
                                 </td>
@@ -507,6 +511,7 @@
                         <select id="role" th:field="*{role}" class="form-control" required style="background: var(--bg-secondary);">
                             <option value="ROLE_EMPLOYEE">Empleado (Ventas / Cobros)</option>
                             <option value="ROLE_ADMIN">Administrador (Control Total)</option>
+                            <option value="ROLE_BUSINESS_ADMIN">Administrador de Negocio (Espacio Independiente)</option>
                         </select>
                     </div>
 

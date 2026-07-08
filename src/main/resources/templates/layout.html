@@ -352,6 +352,11 @@
                         <i class="fa-solid fa-users-cog"></i> Usuarios
                     </a>
                 </li>
+                <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_BUSINESS_ADMIN')">
+                    <a th:href="@{/config}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/config') ? 'active' : ''}">
+                        <i class="fa-solid fa-gears"></i> Configuración
+                    </a>
+                </li>
                 <li sec:authorize="hasRole('ROLE_SUPER_ADMIN')">
                     <a th:href="@{/superadmin}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/superadmin') ? 'active' : ''}">
                         <i class="fa-solid fa-key"></i> Súper Admin

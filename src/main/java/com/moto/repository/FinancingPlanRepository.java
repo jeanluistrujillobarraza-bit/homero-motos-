@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FinancingPlanRepository extends MongoRepository<FinancingPlan, String> {
-    Optional<FinancingPlan> findByMotorcycleId(String motorcycleId);
-    List<FinancingPlan> findByBuyerCedula(String cedula);
-    List<FinancingPlan> findByBuyerNombreCompletoContainingIgnoreCase(String nombreCompleto);
-    List<FinancingPlan> findByEstadoCredito(String estadoCredito);
+    List<FinancingPlan> findByTenantId(String tenantId);
+    Optional<FinancingPlan> findByMotorcycleIdAndTenantId(String motorcycleId, String tenantId);
+    List<FinancingPlan> findByBuyerCedulaAndTenantId(String cedula, String tenantId);
+    List<FinancingPlan> findByEstadoCreditoAndTenantId(String estadoCredito, String tenantId);
     
-    // Joint searches
-    List<FinancingPlan> findByBuyerCedulaContainingIgnoreCaseOrBuyerNombreCompletoContainingIgnoreCase(String cedula, String nombreCompleto);
+    @org.springframework.data.mongodb.repository.Query("{ 'tenantId': ?0, $or: [ { 'buyer.cedula': { $regex: ?1, $options: 'i' } }, { 'buyer.nombreCompleto': { $regex: ?1, $options: 'i' } } ] }")
+    List<FinancingPlan> searchPlans(String tenantId, String query);
 }

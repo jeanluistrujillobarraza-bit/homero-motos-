@@ -50,9 +50,18 @@ public class PaymentController {
         public String getPlate() { return plate; }
     }
 
+    private String getCurrentTenantId() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof com.moto.service.CustomUserDetails) {
+            return ((com.moto.service.CustomUserDetails) auth.getPrincipal()).getTenantId();
+        }
+        return "default";
+    }
+
     @GetMapping
     public String listPayments(@RequestParam(value = "filter", defaultValue = "TODO") String filter, Model model) {
-        List<Payment> all = paymentRepository.findAll();
+        String tenantId = getCurrentTenantId();
+        List<Payment> all = paymentRepository.findByTenantId(tenantId);
         // Sort by payment date descending
         all.sort((p1, p2) -> p2.getFechaPago().compareTo(p1.getFechaPago()));
 
@@ -119,8 +128,12 @@ public class PaymentController {
     @GetMapping("/receipt/{id}")
     public org.springframework.http.ResponseEntity<byte[]> downloadReceipt(@org.springframework.web.bind.annotation.PathVariable("id") String paymentId) {
         try {
+            String tenantId = getCurrentTenantId();
             Payment payment = paymentRepository.findById(paymentId)
                     .orElseThrow(() -> new IllegalArgumentException("Pago no encontrado"));
+            if (!payment.getTenantId().equals(tenantId)) {
+                return new org.springframework.http.ResponseEntity<>(org.springframework.http.HttpStatus.FORBIDDEN);
+            }
             FinancingPlan plan = financingPlanRepository.findById(payment.getFinancingPlanId())
                     .orElseThrow(() -> new IllegalArgumentException("Plan no encontrado"));
             Motorcycle moto = motorcycleRepository.findById(plan.getMotorcycleId()).orElse(null);
@@ -140,7 +153,8 @@ public class PaymentController {
     @GetMapping("/export/excel")
     public org.springframework.http.ResponseEntity<byte[]> exportExcel() {
         try {
-            List<Payment> all = paymentRepository.findAll();
+            String tenantId = getCurrentTenantId();
+            List<Payment> all = paymentRepository.findByTenantId(tenantId);
             all.sort((p1, p2) -> p2.getFechaPago().compareTo(p1.getFechaPago()));
 
             List<PaymentWithDetails> allDetails = new ArrayList<>();
@@ -177,6 +191,12 @@ public class PaymentController {
                                   @RequestParam(value = "observaciones", required = false) String observaciones,
                                   RedirectAttributes redirectAttributes) {
         try {
+            String tenantId = getCurrentTenantId();
+            FinancingPlan plan = financingPlanRepository.findById(planId).orElse(null);
+            if (plan == null || !plan.getTenantId().equals(tenantId)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Acceso denegado");
+                return "redirect:/financing";
+            }
             financingService.registerPayment(planId, valorPagado, metodoPago, observaciones);
             redirectAttributes.addFlashAttribute("successMessage", "¡Pago registrado exitosamente!");
         } catch (Exception e) {
@@ -193,6 +213,12 @@ public class PaymentController {
                               @RequestParam(value = "observaciones", required = false) String observaciones,
                               RedirectAttributes redirectAttributes) {
         try {
+            String tenantId = getCurrentTenantId();
+            FinancingPlan plan = financingPlanRepository.findById(planId).orElse(null);
+            if (plan == null || !plan.getTenantId().equals(tenantId)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Acceso denegado");
+                return "redirect:/financing";
+            }
             financingService.editPayment(paymentId, valorPagado, metodoPago, observaciones);
             redirectAttributes.addFlashAttribute("successMessage", "¡Pago modificado exitosamente!");
         } catch (Exception e) {
@@ -206,6 +232,12 @@ public class PaymentController {
                                 @RequestParam("planId") String planId,
                                 RedirectAttributes redirectAttributes) {
         try {
+            String tenantId = getCurrentTenantId();
+            FinancingPlan plan = financingPlanRepository.findById(planId).orElse(null);
+            if (plan == null || !plan.getTenantId().equals(tenantId)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Acceso denegado");
+                return "redirect:/financing";
+            }
             financingService.deletePayment(paymentId);
             redirectAttributes.addFlashAttribute("successMessage", "¡Pago eliminado exitosamente!");
         } catch (Exception e) {

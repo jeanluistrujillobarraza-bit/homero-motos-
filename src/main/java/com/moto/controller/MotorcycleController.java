@@ -34,9 +34,18 @@ public class MotorcycleController {
     @Autowired
     private AuditService auditService;
 
+    private String getCurrentTenantId() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof com.moto.service.CustomUserDetails) {
+            return ((com.moto.service.CustomUserDetails) auth.getPrincipal()).getTenantId();
+        }
+        return "default";
+    }
+
     @GetMapping
     public String listMotorcycles(Model model) {
-        java.util.List<Motorcycle> list = motorcycleRepository.findAll().stream()
+        String tenantId = getCurrentTenantId();
+        java.util.List<Motorcycle> list = motorcycleRepository.findByTenantId(tenantId).stream()
                 .filter(m -> !m.isDeleted())
                 .collect(Collectors.toList());
         model.addAttribute("motorcycles", list);
@@ -53,35 +62,37 @@ public class MotorcycleController {
     public String saveMotorcycle(@ModelAttribute("motorcycle") Motorcycle motorcycle,
                                  @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
                                  Model model) {
+        String tenantId = getCurrentTenantId();
         if (motorcycle.getId() == null || motorcycle.getId().trim().isEmpty()) {
             motorcycle.setId(null);
             // New motorcycle checks
-            if (motorcycleRepository.findByPlaca(motorcycle.getPlaca()).isPresent()) {
+            if (motorcycleRepository.findByPlacaAndTenantId(motorcycle.getPlaca(), tenantId).isPresent()) {
                 model.addAttribute("error", "La placa ya está registrada en el sistema.");
                 return "motorcycles/form";
             }
-            if (motorcycleRepository.findByVin(motorcycle.getVin()).isPresent()) {
+            if (motorcycleRepository.findByVinAndTenantId(motorcycle.getVin(), tenantId).isPresent()) {
                 model.addAttribute("error", "El VIN ya está registrado en el sistema.");
                 return "motorcycles/form";
             }
-            if (motorcycleRepository.findByNumeroMotor(motorcycle.getNumeroMotor()).isPresent()) {
+            if (motorcycleRepository.findByNumeroMotorAndTenantId(motorcycle.getNumeroMotor(), tenantId).isPresent()) {
                 model.addAttribute("error", "El número de motor ya está registrado en el sistema.");
                 return "motorcycles/form";
             }
             motorcycle.setEstado("DISPONIBLE");
+            motorcycle.setTenantId(tenantId);
         } else {
             // Edit check: check duplicates excluding current id
-            Optional<Motorcycle> existingPlaca = motorcycleRepository.findByPlaca(motorcycle.getPlaca());
+            Optional<Motorcycle> existingPlaca = motorcycleRepository.findByPlacaAndTenantId(motorcycle.getPlaca(), tenantId);
             if (existingPlaca.isPresent() && !existingPlaca.get().getId().equals(motorcycle.getId())) {
                 model.addAttribute("error", "La placa ya pertenece a otra motocicleta.");
                 return "motorcycles/form";
             }
-            Optional<Motorcycle> existingVin = motorcycleRepository.findByVin(motorcycle.getVin());
+            Optional<Motorcycle> existingVin = motorcycleRepository.findByVinAndTenantId(motorcycle.getVin(), tenantId);
             if (existingVin.isPresent() && !existingVin.get().getId().equals(motorcycle.getId())) {
                 model.addAttribute("error", "El VIN ya pertenece a otra motocicleta.");
                 return "motorcycles/form";
             }
-            Optional<Motorcycle> existingMotor = motorcycleRepository.findByNumeroMotor(motorcycle.getNumeroMotor());
+            Optional<Motorcycle> existingMotor = motorcycleRepository.findByNumeroMotorAndTenantId(motorcycle.getNumeroMotor(), tenantId);
             if (existingMotor.isPresent() && !existingMotor.get().getId().equals(motorcycle.getId())) {
                 model.addAttribute("error", "El número de motor ya pertenece a otra motocicleta.");
                 return "motorcycles/form";
@@ -90,6 +101,9 @@ public class MotorcycleController {
             // Retain original image if no new image is provided
             Motorcycle original = motorcycleRepository.findById(motorcycle.getId()).orElse(null);
             if (original != null) {
+                if (!original.getTenantId().equals(tenantId)) {
+                    return "redirect:/motorcycles?error=Acceso+denegado";
+                }
                 if (imageFile == null || imageFile.isEmpty()) {
                     motorcycle.setFotoBase64(original.getFotoBase64());
                 }
@@ -99,6 +113,7 @@ public class MotorcycleController {
                 motorcycle.setDeleted(original.isDeleted());
                 motorcycle.setDestacado(original.isDestacado());
                 motorcycle.setHidden(original.isHidden());
+                motorcycle.setTenantId(tenantId);
             }
         }
 
@@ -121,17 +136,26 @@ public class MotorcycleController {
 
     @GetMapping("/edit/{id}")
     public String editMotorcycleForm(@PathVariable("id") String id, Model model) {
+        String tenantId = getCurrentTenantId();
         Motorcycle motorcycle = motorcycleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
+        if (!motorcycle.getTenantId().equals(tenantId)) {
+            return "redirect:/motorcycles?error=Acceso+denegado";
+        }
         model.addAttribute("motorcycle", motorcycle);
         return "motorcycles/form";
     }
 
     @GetMapping("/delete/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_BUSINESS_ADMIN')")
     public String deleteMotorcycle(@PathVariable("id") String id, Model model) {
+        String tenantId = getCurrentTenantId();
         Motorcycle motorcycle = motorcycleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
+
+        if (!motorcycle.getTenantId().equals(tenantId)) {
+            return "redirect:/motorcycles?error=Acceso+denegado";
+        }
 
         boolean isSuperAdmin = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(a -> "ROLE_SUPER_ADMIN".equals(a.getAuthority()));
@@ -141,8 +165,8 @@ public class MotorcycleController {
                 return "redirect:/motorcycles?error=No+se+puede+eliminar+una+moto+bajo+financiacion+activa";
             } else {
                 // Super Admin: delete associated financing plan and its payments
-                financingPlanRepository.findByMotorcycleId(id).ifPresent(plan -> {
-                    paymentRepository.deleteAll(paymentRepository.findByFinancingPlanIdOrderByFechaPagoAsc(plan.getId()));
+                financingPlanRepository.findByMotorcycleIdAndTenantId(id, tenantId).ifPresent(plan -> {
+                    paymentRepository.deleteAll(paymentRepository.findByFinancingPlanIdAndTenantIdOrderByFechaPagoAsc(plan.getId(), tenantId));
                     financingPlanRepository.delete(plan);
                 });
             }
@@ -157,10 +181,14 @@ public class MotorcycleController {
     }
 
     @GetMapping("/duplicate/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_BUSINESS_ADMIN')")
     public String duplicateMotorcycle(@PathVariable("id") String id) {
+        String tenantId = getCurrentTenantId();
         Motorcycle m = motorcycleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
+        if (!m.getTenantId().equals(tenantId)) {
+            return "redirect:/motorcycles?error=Acceso+denegado";
+        }
         Motorcycle duplicate = new Motorcycle();
         duplicate.setPlaca(m.getPlaca() + "_COPIA");
         duplicate.setMarca(m.getMarca());
@@ -174,23 +202,29 @@ public class MotorcycleController {
         duplicate.setObservaciones("Copia de: " + m.getPlaca());
         duplicate.setEstado("DISPONIBLE");
         duplicate.setFotoBase64(m.getFotoBase64());
+        duplicate.setTenantId(tenantId);
         motorcycleRepository.save(duplicate);
         auditService.log("DUPLICAR_MOTOCICLETA", "Duplicada motocicleta: " + m.getPlaca() + " a copia: " + duplicate.getPlaca());
         return "redirect:/motorcycles?success=Motocicleta+duplicada+con+exito";
     }
 
     @GetMapping("/restore-financing/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_BUSINESS_ADMIN')")
     public String restoreFinancing(@PathVariable("id") String id) {
+        String tenantId = getCurrentTenantId();
         Motorcycle motorcycle = motorcycleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
 
+        if (!motorcycle.getTenantId().equals(tenantId)) {
+            return "redirect:/motorcycles?error=Acceso+denegado";
+        }
+
         if ("EN_FINANCIACION".equals(motorcycle.getEstado()) || "PAGADA".equals(motorcycle.getEstado())) {
-            Optional<FinancingPlan> planOpt = financingPlanRepository.findByMotorcycleId(id);
+            Optional<FinancingPlan> planOpt = financingPlanRepository.findByMotorcycleIdAndTenantId(id, tenantId);
             if (planOpt.isPresent()) {
                 FinancingPlan plan = planOpt.get();
                 // Delete all payments except down payment (numeroCuota == 0)
-                java.util.List<Payment> payments = paymentRepository.findByFinancingPlanIdOrderByFechaPagoAsc(plan.getId());
+                java.util.List<Payment> payments = paymentRepository.findByFinancingPlanIdAndTenantIdOrderByFechaPagoAsc(plan.getId(), tenantId);
                 for (Payment p : payments) {
                     if (p.getNumeroCuota() != null && p.getNumeroCuota() > 0) {
                         paymentRepository.delete(p);

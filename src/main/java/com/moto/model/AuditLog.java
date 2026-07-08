@@ -56,4 +56,9 @@ public class AuditLog {
 
     public String getDeviceDetails() { return deviceDetails; }
     public void setDeviceDetails(String deviceDetails) { this.deviceDetails = deviceDetails; }
+
+    private String tenantId;
+
+    public String getTenantId() { return tenantId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 }

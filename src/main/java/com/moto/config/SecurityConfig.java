@@ -41,9 +41,10 @@ public class SecurityConfig {
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/hm1.gif", "/hmfondo.jpg", "/maintenance").permitAll()
                 .requestMatchers("/superadmin/**").hasRole("SUPER_ADMIN")
                 .requestMatchers("/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                .requestMatchers("/motorcycles/delete/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                .requestMatchers("/financing/delete/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                .requestMatchers("/payments/edit", "/payments/delete").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/motorcycles/delete/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "BUSINESS_ADMIN")
+                .requestMatchers("/financing/delete/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "BUSINESS_ADMIN")
+                .requestMatchers("/payments/edit", "/payments/delete").hasAnyRole("ADMIN", "SUPER_ADMIN", "BUSINESS_ADMIN")
+                .requestMatchers("/config/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "BUSINESS_ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

@@ -25,6 +25,16 @@ public class FinancingService {
     @Autowired
     private AuditService auditService;
 
+    private String getCurrentTenantId() {
+        if (org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() != null) {
+            Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                return ((CustomUserDetails) principal).getTenantId();
+            }
+        }
+        return "default";
+    }
+
     public FinancingPlan registerSale(String motorcycleId, Buyer buyer, Double valorTotal, 
                                       Double cuotaInicial, Integer cuotasTotales, Double valorCuota, 
                                       String frecuenciaPago, LocalDate fechaInicio) {
@@ -39,6 +49,7 @@ public class FinancingService {
         // Create financing plan
         FinancingPlan plan = new FinancingPlan(motorcycleId, buyer, valorTotal, cuotaInicial, 
                                                cuotasTotales, valorCuota, frecuenciaPago, fechaInicio);
+        plan.setTenantId(getCurrentTenantId());
         
         // Save financing plan
         plan = financingPlanRepository.save(plan);
@@ -59,6 +70,7 @@ public class FinancingService {
         if (cuotaInicial != null && cuotaInicial > 0) {
             Payment initialPayment = new Payment(plan.getId(), LocalDateTime.now(java.time.ZoneId.of("America/Bogota")), cuotaInicial, 0, 
                                                  "EFECTIVO", "Cuota Inicial de la compra", "SYSTEM");
+            initialPayment.setTenantId(getCurrentTenantId());
             paymentRepository.save(initialPayment);
         }
 
@@ -89,6 +101,7 @@ public class FinancingService {
             username = ((org.springframework.security.core.userdetails.UserDetails) org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
         }
         payment.setRegistradoPor(username);
+        payment.setTenantId(getCurrentTenantId());
         
         payment = paymentRepository.save(payment);
 
@@ -355,6 +368,7 @@ public class FinancingService {
         } else if (initialPaymentVal > 0) {
             Payment initialPayment = new Payment(planId, LocalDateTime.now(java.time.ZoneId.of("America/Bogota")), initialPaymentVal, 0, 
                                                  "EFECTIVO", "Cuota Inicial de la compra", "SYSTEM");
+            initialPayment.setTenantId(plan.getTenantId());
             paymentRepository.save(initialPayment);
         }
 

@@ -33,10 +33,20 @@ public class DashboardController {
     @Autowired
     private com.moto.service.FinancingService financingService;
 
+    private String getCurrentTenantId() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof com.moto.service.CustomUserDetails) {
+            return ((com.moto.service.CustomUserDetails) auth.getPrincipal()).getTenantId();
+        }
+        return "default";
+    }
+
     @GetMapping("/")
     public String dashboard(Model model) {
+        String tenantId = getCurrentTenantId();
+
         // Motorcycle stats
-        List<Motorcycle> allMotos = motorcycleRepository.findAll().stream()
+        List<Motorcycle> allMotos = motorcycleRepository.findByTenantId(tenantId).stream()
                 .filter(m -> !m.isDeleted())
                 .collect(java.util.stream.Collectors.toList());
         long totalMotos = allMotos.size();
@@ -46,7 +56,7 @@ public class DashboardController {
         long pagadas = allMotos.stream().filter(m -> "PAGADA".equals(m.getEstado())).count();
 
         // Financing stats
-        List<FinancingPlan> allPlans = financingPlanRepository.findAll();
+        List<FinancingPlan> allPlans = financingPlanRepository.findByTenantId(tenantId);
         for (FinancingPlan plan : allPlans) {
             if (!"PAGADO".equals(plan.getEstadoCredito())) {
                 try {
@@ -66,7 +76,7 @@ public class DashboardController {
                 .sum();
 
         // Payments stats
-        List<Payment> allPayments = paymentRepository.findAll();
+        List<Payment> allPayments = paymentRepository.findByTenantId(tenantId);
         double dineroTotalRecaudado = allPayments.stream()
                 .mapToDouble(Payment::getValorPagado)
                 .sum();
@@ -83,8 +93,8 @@ public class DashboardController {
 
         // Payments today
         LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Bogota"));
-        List<Payment> todayPayments = paymentRepository.findByFechaPagoBetween(
-                today.atStartOfDay(), today.plusDays(1).atStartOfDay()
+        List<Payment> todayPayments = paymentRepository.findByTenantIdAndFechaPagoBetween(
+                tenantId, today.atStartOfDay(), today.plusDays(1).atStartOfDay()
         );
         double dineroRecaudadoHoy = todayPayments.stream()
                 .mapToDouble(Payment::getValorPagado)
@@ -101,8 +111,8 @@ public class DashboardController {
         model.addAttribute("recaudoNequi", recaudoNequi);
         model.addAttribute("saldoTotalPendiente", saldoTotalPendiente);
         model.addAttribute("dineroRecaudadoHoy", dineroRecaudadoHoy);
-        model.addAttribute("recentLogs", auditLogRepository.findFirst10ByOrderByFechaDesc());
-        model.addAttribute("recentPayments", paymentRepository.findFirst10ByOrderByFechaPagoDesc());
+        model.addAttribute("recentLogs", auditLogRepository.findFirst10ByTenantIdOrderByFechaDesc(tenantId));
+        model.addAttribute("recentPayments", paymentRepository.findFirst10ByTenantIdOrderByFechaPagoDesc(tenantId));
 
         return "dashboard";
     }

@@ -69,9 +69,18 @@ public class ClientController {
         }
     }
 
+    private String getCurrentTenantId() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof com.moto.service.CustomUserDetails) {
+            return ((com.moto.service.CustomUserDetails) auth.getPrincipal()).getTenantId();
+        }
+        return "default";
+    }
+
     @GetMapping
     public String listClients(Model model) {
-        List<FinancingPlan> allPlans = financingPlanRepository.findAll();
+        String tenantId = getCurrentTenantId();
+        List<FinancingPlan> allPlans = financingPlanRepository.findByTenantId(tenantId);
         Map<String, ClientSummary> clientMap = new HashMap<>();
 
         for (FinancingPlan plan : allPlans) {
@@ -95,7 +104,8 @@ public class ClientController {
 
     @GetMapping("/detail/{cedula}")
     public String clientDetail(@PathVariable("cedula") String cedula, Model model) {
-        List<FinancingPlan> allPlans = financingPlanRepository.findAll();
+        String tenantId = getCurrentTenantId();
+        List<FinancingPlan> allPlans = financingPlanRepository.findByTenantId(tenantId);
         List<FinancingPlan> clientPlans = new ArrayList<>();
         List<Motorcycle> clientMotos = new ArrayList<>();
 

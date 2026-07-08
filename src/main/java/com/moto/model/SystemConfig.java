@@ -68,4 +68,9 @@ public class SystemConfig {
 
     public boolean isMaintenanceMode() { return maintenanceMode; }
     public void setMaintenanceMode(boolean maintenanceMode) { this.maintenanceMode = maintenanceMode; }
+
+    private String tenantId;
+
+    public String getTenantId() { return tenantId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 }

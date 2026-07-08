@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: html(title='Configuración del Negocio', pageTitle='Configuración del Negocio', content=~{::#config-content}, extraStyle=~{::style})}">
+<head>
+    <style>
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .config-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            transition: var(--transition-smooth);
+        }
+        .config-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .config-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .config-card-title i {
+            color: var(--accent-blue);
+        }
+
+        .color-preview-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="config-content">
+        <form th:action="@{/config/save}" method="post" th:object="${config}">
+            <div class="config-grid">
+                
+                <!-- Branding & Contact Details -->
+                <div class="config-card">
+                    <h3 class="config-card-title">
+                        <i class="fa-solid fa-id-card"></i> Identidad y Contacto
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label for="companyName" class="form-label">Nombre del Negocio</label>
+                        <input type="text" id="companyName" th:field="*{companyName}" class="form-control" placeholder="Ej. Homero Motos" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactPhone" class="form-label">Teléfono de Contacto</label>
+                        <input type="text" id="contactPhone" th:field="*{contactPhone}" class="form-control" placeholder="Ej. +57 300 123 4567">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address" class="form-label">Dirección Física</label>
+                        <input type="text" id="address" th:field="*{address}" class="form-control" placeholder="Ej. Calle 10 # 5-20">
+                    </div>
+                </div>
+
+                <!-- Financial Settings -->
+                <div class="config-card">
+                    <h3 class="config-card-title">
+                        <i class="fa-solid fa-coins"></i> Condiciones Financieras
+                    </h3>
+
+                    <div class="form-group">
+                        <label for="defaultInterestRate" class="form-label">Tasa de Interés Predeterminada (%)</label>
+                        <input type="number" step="0.01" id="defaultInterestRate" th:field="*{defaultInterestRate}" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maxFinancingTimeMonths" class="form-label">Plazo Máximo de Financiación (Meses)</label>
+                        <input type="number" step="1" id="maxFinancingTimeMonths" th:field="*{maxFinancingTimeMonths}" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="whatsappToken" class="form-label">WhatsApp API / Token Opcional</label>
+                        <input type="text" id="whatsappToken" th:field="*{whatsappToken}" class="form-control" placeholder="Token de envío de notificaciones">
+                    </div>
+                </div>
+
+                <!-- Appearance Customization -->
+                <div class="config-card">
+                    <h3 class="config-card-title">
+                        <i class="fa-solid fa-palette"></i> Apariencia visual
+                    </h3>
+
+                    <div class="form-group">
+                        <label for="colorPrimary" class="form-label">Color Principal</label>
+                        <div class="color-preview-container">
+                            <input type="color" id="colorPrimary" th:field="*{colorPrimary}" class="color-picker">
+                            <span style="font-family: monospace; font-size: 14px;" th:text="*{colorPrimary}">#2563eb</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="colorSecondary" class="form-label">Color Secundario</label>
+                        <div class="color-preview-container">
+                            <input type="color" id="colorSecondary" th:field="*{colorSecondary}" class="color-picker">
+                            <span style="font-family: monospace; font-size: 14px;" th:text="*{colorSecondary}">#0f172a</span>
+                        </div>
+                    </div>
+                    
+                    <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-top: 15px;">
+                        <i class="fa-solid fa-circle-info"></i> Personalice los colores representativos de su marca para que aparezcan en su espacio de trabajo independiente.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Save Bar -->
+            <div style="display: flex; justify-content: flex-end; gap: 15px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <button type="submit" class="btn btn-success glowing-btn" style="padding: 12px 30px; font-size: 16px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

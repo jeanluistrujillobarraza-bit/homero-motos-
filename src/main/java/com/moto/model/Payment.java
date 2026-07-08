@@ -58,4 +58,9 @@ public class Payment {
 
     public String getRegistradoPor() { return registradoPor; }
     public void setRegistradoPor(String registradoPor) { this.registradoPor = registradoPor; }
+
+    private String tenantId;
+
+    public String getTenantId() { return tenantId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 }

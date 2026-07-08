@@ -54,9 +54,18 @@ public class FinancingController {
         return motorcycleRepository.findById(id).orElseGet(() -> createFallbackMotorcycle(fallbackPrice));
     }
 
+    private String getCurrentTenantId() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof com.moto.service.CustomUserDetails) {
+            return ((com.moto.service.CustomUserDetails) auth.getPrincipal()).getTenantId();
+        }
+        return "default";
+    }
+
     @GetMapping
     public String listFinancingPlans(Model model) {
-        List<FinancingPlan> plans = financingPlanRepository.findAll();
+        String tenantId = getCurrentTenantId();
+        List<FinancingPlan> plans = financingPlanRepository.findByTenantId(tenantId);
         // Update statuses in real time
         for (FinancingPlan plan : plans) {
             try {
@@ -95,9 +104,14 @@ public class FinancingController {
 
     @GetMapping("/new/{motoId}")
     public String showSaleForm(@PathVariable("motoId") String motoId, Model model) {
+        String tenantId = getCurrentTenantId();
         Motorcycle moto = motorcycleRepository.findById(motoId)
                 .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
         
+        if (!moto.getTenantId().equals(tenantId)) {
+            return "redirect:/motorcycles?error=Acceso+denegado";
+        }
+
         if (!"DISPONIBLE".equals(moto.getEstado())) {
             return "redirect:/motorcycles?error=La+motocicleta+ya+no+esta+disponible";
         }
@@ -160,8 +174,13 @@ public class FinancingController {
 
     @GetMapping("/detail/{id}")
     public String showDetail(@PathVariable("id") String id, Model model) {
+        String tenantId = getCurrentTenantId();
         FinancingPlan plan = financingPlanRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Plan de financiación no encontrado"));
+
+        if (!plan.getTenantId().equals(tenantId)) {
+            return "redirect:/financing?error=Acceso+denegado";
+        }
 
         // Trigger real-time status check/update based on current date
         financingService.updatePaymentStatus(plan);
@@ -186,11 +205,12 @@ public class FinancingController {
         }
 
         query = query.trim();
+        String tenantId = getCurrentTenantId();
 
         // 1. Search by Placa in Motorcycles
-        Optional<Motorcycle> motoOpt = motorcycleRepository.findByPlaca(query.toUpperCase());
+        Optional<Motorcycle> motoOpt = motorcycleRepository.findByPlacaAndTenantId(query.toUpperCase(), tenantId);
         if (motoOpt.isPresent()) {
-            Optional<FinancingPlan> planOpt = financingPlanRepository.findByMotorcycleId(motoOpt.get().getId());
+            Optional<FinancingPlan> planOpt = financingPlanRepository.findByMotorcycleIdAndTenantId(motoOpt.get().getId(), tenantId);
             if (planOpt.isPresent()) {
                 return "redirect:/financing/detail/" + planOpt.get().getId();
             } else {
@@ -201,7 +221,7 @@ public class FinancingController {
         }
 
         // 2. Search by Cedula or Name in Financing Plans
-        List<FinancingPlan> plans = financingPlanRepository.findByBuyerCedulaContainingIgnoreCaseOrBuyerNombreCompletoContainingIgnoreCase(query, query);
+        List<FinancingPlan> plans = financingPlanRepository.searchPlans(tenantId, query);
         
         if (plans.size() == 1) {
             return "redirect:/financing/detail/" + plans.get(0).getId();
@@ -272,7 +292,8 @@ public class FinancingController {
     @GetMapping("/export/excel")
     public org.springframework.http.ResponseEntity<byte[]> exportExcel() {
         try {
-            List<FinancingPlan> plans = financingPlanRepository.findAll();
+            String tenantId = getCurrentTenantId();
+            List<FinancingPlan> plans = financingPlanRepository.findByTenantId(tenantId);
             // Update statuses in real time before exporting
             for (FinancingPlan plan : plans) {
                 try {
@@ -311,6 +332,11 @@ public class FinancingController {
                                     @RequestParam("valorCuota") Double valorCuota,
                                     @RequestParam("frecuenciaPago") String frecuenciaPago,
                                     @RequestParam("fechaInicio") String fechaInicioStr) {
+        String tenantId = getCurrentTenantId();
+        FinancingPlan existingPlan = financingPlanRepository.findById(planId).orElse(null);
+        if (existingPlan == null || !existingPlan.getTenantId().equals(tenantId)) {
+            return "redirect:/financing?error=Acceso+denegado";
+        }
         LocalDate fechaCompra = parseLocalDate(fechaCompraStr);
         LocalDate fechaInicio = parseLocalDate(fechaInicioStr);
         try {
