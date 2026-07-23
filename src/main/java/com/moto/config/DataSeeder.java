@@ -41,6 +41,7 @@ public class DataSeeder implements CommandLineRunner {
         admin.setRole("ROLE_SUPER_ADMIN");
         admin.setActive(true);
         admin.setTenantId("default");
+        admin.setCreatedBy("system");
         userRepository.save(admin);
         System.out.println("Upserted default admin: cristian / barraza1998");
 
@@ -52,6 +53,7 @@ public class DataSeeder implements CommandLineRunner {
         employee.setRole("ROLE_EMPLOYEE");
         employee.setActive(true);
         employee.setTenantId("default");
+        employee.setCreatedBy("cristian");
         userRepository.save(employee);
         System.out.println("Upserted default employee: empleado / empleado123");
 

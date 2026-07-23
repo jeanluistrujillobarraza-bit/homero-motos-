@@ -53,6 +53,13 @@ public class UserController {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setActive(true);
             
+            Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                user.setCreatedBy(((org.springframework.security.core.userdetails.UserDetails) principal).getUsername());
+            } else {
+                user.setCreatedBy("system");
+            }
+
             if ("ROLE_BUSINESS_ADMIN".equals(user.getRole())) {
                 user.setTenantId("tenant_" + java.util.UUID.randomUUID().toString());
             } else {
@@ -92,6 +99,23 @@ public class UserController {
         return "redirect:/users";
     }
 
+    private boolean isCreatedByAdmin(User user) {
+        String createdBy = user.getCreatedBy();
+        if (createdBy == null) {
+            return "cristian".equals(user.getUsername()) || "admin".equals(user.getUsername()) 
+                || "ROLE_SUPER_ADMIN".equals(user.getRole()) || "ROLE_ADMIN".equals(user.getRole());
+        }
+        if ("cristian".equals(createdBy) || "admin".equals(createdBy) || "system".equals(createdBy)) {
+            return true;
+        }
+        Optional<User> creatorOpt = userRepository.findByUsername(createdBy);
+        if (creatorOpt.isPresent()) {
+            User creator = creatorOpt.get();
+            return "ROLE_SUPER_ADMIN".equals(creator.getRole()) || "ROLE_ADMIN".equals(creator.getRole());
+        }
+        return false;
+    }
+
     @GetMapping("/toggle/{id}")
     public String toggleUserStatus(@PathVariable("id") String id) {
         Optional<User> userOpt = userRepository.findById(id);
@@ -119,11 +143,21 @@ public class UserController {
             
             // Prevent self-deletion
             Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String currentUsername = null;
+            String currentRole = null;
             if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-                String currentUsername = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+                currentUsername = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
                 if (currentUsername.equals(user.getUsername())) {
                     return "redirect:/users?error=No+se+puede+eliminar+a+si+mismo";
                 }
+            }
+            if (principal instanceof com.moto.service.CustomUserDetails) {
+                currentRole = ((com.moto.service.CustomUserDetails) principal).getUser().getRole();
+            }
+            
+            // Check if current user is ROLE_BUSINESS_ADMIN and target user was created by an admin
+            if ("ROLE_BUSINESS_ADMIN".equals(currentRole) && isCreatedByAdmin(user)) {
+                return "redirect:/users?error=No+tiene+permisos+para+eliminar+usuarios+creados+por+el+administrador";
             }
             
             userRepository.delete(user);

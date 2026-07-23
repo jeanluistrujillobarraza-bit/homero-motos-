@@ -347,7 +347,7 @@
                         <i class="fa-solid fa-users"></i> Clientes
                     </a>
                 </li>
-                <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')">
+                <li sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_BUSINESS_ADMIN')">
                     <a th:href="@{/users}" class="sidebar-link" th:classappend="${currentUri != null && currentUri.startsWith('/users') ? 'active' : ''}">
                         <i class="fa-solid fa-users-cog"></i> Usuarios
                     </a>

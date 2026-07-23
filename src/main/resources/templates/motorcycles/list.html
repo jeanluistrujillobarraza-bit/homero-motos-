@@ -549,8 +549,8 @@
                         <a th:unless="${moto.estado == 'DISPONIBLE'}" th:href="@{/financing/search(query=${moto.placa})}" class="btn btn-secondary btn-sm" style="flex: 1;">
                             <i class="fa-solid fa-eye"></i> Ver Crédito
                         </a>
-                        <!-- Restore Financing (Admin/Super Admin only) -->
-                        <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')"
+                        <!-- Restore Financing (Admin/Super Admin/Business Admin) -->
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_BUSINESS_ADMIN')"
                            th:unless="${moto.estado == 'DISPONIBLE'}" 
                            th:href="@{/motorcycles/restore-financing/{id}(id=${moto.id})}" 
                            class="btn btn-warning btn-sm" 
@@ -562,8 +562,8 @@
                         <a th:href="@{/motorcycles/edit/{id}(id=${moto.id})}" class="btn btn-secondary btn-sm" title="Editar">
                             <i class="fa-solid fa-pen"></i>
                         </a>
-                        <!-- Delete (Admin / Super Admin) -->
-                        <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')" 
+                        <!-- Delete (Admin / Super Admin / Business Admin) -->
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_BUSINESS_ADMIN')" 
                            th:if="${#authorization.expression('hasRole(''ROLE_SUPER_ADMIN'')') or moto.estado != 'EN_FINANCIACION'}"
                            th:href="@{/motorcycles/delete/{id}(id=${moto.id})}" 
                            class="btn btn-danger btn-sm" 
