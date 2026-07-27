@@ -223,33 +223,19 @@ public class MotorcycleController {
             Optional<FinancingPlan> planOpt = financingPlanRepository.findByMotorcycleIdAndTenantId(id, tenantId);
             if (planOpt.isPresent()) {
                 FinancingPlan plan = planOpt.get();
-                // Delete all payments except down payment (numeroCuota == 0)
+                // Delete all payments associated with the plan
                 java.util.List<Payment> payments = paymentRepository.findByFinancingPlanIdAndTenantIdOrderByFechaPagoAsc(plan.getId(), tenantId);
-                for (Payment p : payments) {
-                    if (p.getNumeroCuota() != null && p.getNumeroCuota() > 0) {
-                        paymentRepository.delete(p);
-                    }
-                }
+                paymentRepository.deleteAll(payments);
 
-                // Reset financing plan values
-                double cuotaInicial = plan.getCuotaInicial() != null ? plan.getCuotaInicial() : 0.0;
-                plan.setTotalPagado(cuotaInicial);
-                plan.setSaldoPendiente(plan.getValorTotal() - cuotaInicial);
-                plan.setCuotasPagadas(0);
-                plan.setCuotasRestantes(plan.getCuotasTotales());
-                plan.setPorcentajeCancelado((cuotaInicial / plan.getValorTotal()) * 100.0);
-                plan.setEstadoCredito("AL_DIA");
-                plan.setCuotasAtrasadas(0);
-                plan.setDiasRetraso(0L);
-                plan.setValorTotalAdeudado(0.0);
-                financingPlanRepository.save(plan);
+                // Delete the financing plan itself (removing customer details)
+                financingPlanRepository.delete(plan);
 
-                // Set motorcycle state back to EN_FINANCIACION
-                motorcycle.setEstado("EN_FINANCIACION");
+                // Set motorcycle state back to DISPONIBLE
+                motorcycle.setEstado("DISPONIBLE");
                 motorcycleRepository.save(motorcycle);
 
-                auditService.log("RESTAURAR_FINANCIACION", "Restaurada financiación de la motocicleta con placa: " + motorcycle.getPlaca());
-                return "redirect:/motorcycles?successMessage=Financiacion+restaurada+con+exito.+El+saldo+y+los+pagos+se+han+reiniciado.";
+                auditService.log("RESTAURAR_FINANCIACION", "Restaurada financiación de la motocicleta con placa: " + motorcycle.getPlaca() + " (Eliminados datos de cliente y pagos)");
+                return "redirect:/motorcycles?successMessage=Financiacion+restaurada+con+exito.+La+motocicleta+esta+disponible+para+financiar+nuevamente.";
             }
         }
 
