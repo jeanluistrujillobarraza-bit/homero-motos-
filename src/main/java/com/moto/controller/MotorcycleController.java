@@ -219,7 +219,7 @@ public class MotorcycleController {
             return "redirect:/motorcycles?error=Acceso+denegado";
         }
 
-        if ("EN_FINANCIACION".equals(motorcycle.getEstado()) || "PAGADA".equals(motorcycle.getEstado())) {
+        if ("EN_FINANCIACION".equals(motorcycle.getEstado()) || "PAGO_VENCIDO".equals(motorcycle.getEstado()) || "PAGADA".equals(motorcycle.getEstado())) {
             Optional<FinancingPlan> planOpt = financingPlanRepository.findByMotorcycleIdAndTenantId(id, tenantId);
             if (planOpt.isPresent()) {
                 FinancingPlan plan = planOpt.get();
