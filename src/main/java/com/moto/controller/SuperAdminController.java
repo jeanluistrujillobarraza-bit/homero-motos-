@@ -66,6 +66,9 @@ public class SuperAdminController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private DeletedFinancingBackupRepository deletedFinancingBackupRepository;
+
     @GetMapping
     public String index(@RequestParam(value = "tab", defaultValue = "dashboard") String tab,
                         @RequestParam(value = "success", required = false) String success,
@@ -107,6 +110,8 @@ public class SuperAdminController {
             model.addAttribute("backups", backupRecordRepository.findByOrderByCreatedAtDesc());
         } else if ("trash".equals(tab)) {
             model.addAttribute("deletedMotos", motorcycleRepository.findAll().stream().filter(Motorcycle::isDeleted).collect(Collectors.toList()));
+        } else if ("deleted_financing".equals(tab)) {
+            model.addAttribute("deletedFinancings", deletedFinancingBackupRepository.findByOrderByDeletedAtDesc());
         } else if ("audit".equals(tab)) {
             model.addAttribute("logs", auditLogRepository.findAll());
         }
@@ -287,6 +292,40 @@ public class SuperAdminController {
         motorcycleRepository.save(m);
         logAuditWithDetails("RESTAURAR_MOTOCICLETA", "Motocicleta restaurada: " + m.getPlaca(), request);
         return "redirect:/superadmin?tab=trash&success=Motocicleta+restaurada";
+    }
+
+    // --- RESTORE DELETED FINANCING ---
+    @PostMapping("/deleted-financing/restore/{id}")
+    public String restoreDeletedFinancing(@PathVariable("id") String id, HttpServletRequest request) {
+        DeletedFinancingBackup backup = deletedFinancingBackupRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Respaldo de financiación no encontrado"));
+
+        Motorcycle motorcycle = motorcycleRepository.findById(backup.getMotorcycleId())
+                .orElseThrow(() -> new IllegalArgumentException("Motocicleta no encontrada"));
+
+        if (!"DISPONIBLE".equals(motorcycle.getEstado())) {
+            return "redirect:/superadmin?tab=deleted_financing&error=La+motocicleta+ya+no+esta+disponible+(Estado+actual:+" + motorcycle.getEstado() + ")";
+        }
+
+        // Restore financing plan
+        FinancingPlan plan = backup.getFinancingPlan();
+        financingPlanRepository.save(plan);
+
+        // Restore payments
+        if (backup.getPayments() != null && !backup.getPayments().isEmpty()) {
+            paymentRepository.saveAll(backup.getPayments());
+        }
+
+        // Set motorcycle state back to original
+        motorcycle.setEstado(backup.getOriginalMotorcycleEstado() != null ? backup.getOriginalMotorcycleEstado() : "EN_FINANCIACION");
+        motorcycleRepository.save(motorcycle);
+
+        // Delete backup
+        deletedFinancingBackupRepository.delete(backup);
+
+        logAuditWithDetails("RECUPERAR_FINANCIACION_ELIMINADA", "Financiación recuperada para motocicleta: " + motorcycle.getPlaca() + ", Cliente: " + plan.getBuyer().getNombreCompleto(), request);
+
+        return "redirect:/superadmin?tab=deleted_financing&success=Financiacion+restaurada+correctamente";
     }
 
     // --- UTILS ---

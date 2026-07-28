@@ -77,6 +77,7 @@
                 <button class="tab-btn" th:classappend="${tab == 'system' ? 'active' : ''}" onclick="window.location.href='/superadmin?tab=system'">Variables del Sistema</button>
                 <button class="tab-btn" th:classappend="${tab == 'backups' ? 'active' : ''}" onclick="window.location.href='/superadmin?tab=backups'">Copias de Seguridad</button>
                 <button class="tab-btn" th:classappend="${tab == 'trash' ? 'active' : ''}" onclick="window.location.href='/superadmin?tab=trash'">Papelera de Motos</button>
+                <button class="tab-btn" th:classappend="${tab == 'deleted_financing' ? 'active' : ''}" onclick="window.location.href='/superadmin?tab=deleted_financing'">Financiaciones Eliminadas</button>
                 <button class="tab-btn" th:classappend="${tab == 'audit' ? 'active' : ''}" onclick="window.location.href='/superadmin?tab=audit'">Historial de Auditoría</button>
             </div>
 
@@ -298,6 +299,52 @@
                         </tr>
                         <tr th:if="${#lists.isEmpty(deletedMotos)}">
                             <td colspan="5" style="text-align:center; color:#94a3b8;">La papelera está vacía.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TAB 5.5: DELETED FINANCINGS -->
+            <div th:if="${tab == 'deleted_financing'}">
+                <table class="super-table">
+                    <thead>
+                        <tr>
+                            <th>Comprador</th>
+                            <th>Identificación</th>
+                            <th>Motocicleta (Placa)</th>
+                            <th>Monto Abonado</th>
+                            <th>Saldo Pendiente</th>
+                            <th>Eliminado por / el</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="df : ${deletedFinancings}">
+                            <td>
+                                <strong th:text="${df.financingPlan.buyer.nombreCompleto}">-</strong><br/>
+                                <small th:text="${df.financingPlan.buyer.telefono}" style="color:#94a3b8;"></small>
+                            </td>
+                            <td th:text="${df.financingPlan.buyer.cedula}">-</td>
+                            <td>
+                                <strong th:text="${df.motorcyclePlaca}">-</strong><br/>
+                                <small th:text="${df.motorcycleMarcaModelo}" style="color:#94a3b8;"></small>
+                            </td>
+                            <td style="color:#10b981; font-weight:bold;" th:text="${'$' + #numbers.formatDecimal(df.financingPlan.totalPagado, 0, 'POINT', 0, 'COMMA')}">0</td>
+                            <td style="color:#f59e0b;" th:text="${'$' + #numbers.formatDecimal(df.financingPlan.saldoPendiente, 0, 'POINT', 0, 'COMMA')}">0</td>
+                            <td>
+                                <span th:text="${df.deletedBy}">-</span><br/>
+                                <small th:text="${#temporals.format(df.deletedAt, 'dd/MM/yyyy HH:mm')}" style="color:#94a3b8;"></small>
+                            </td>
+                            <td>
+                                <form th:action="@{/superadmin/deleted-financing/restore/{id}(id=${df.id})}" method="post" style="display:inline;" onsubmit="return confirm('¿Está seguro de recuperar el estado de financiamiento completo para esta motocicleta? Se restaurarán todos los datos del comprador y el historial de pagos abonados.');">
+                                    <button type="submit" class="btn btn-success btn-sm" style="background:#10b981; border:none; padding: 6px 12px; border-radius: 4px; color:white; font-weight:bold; cursor:pointer;">
+                                        <i class="fa-solid fa-rotate-left"></i> Recuperar Estado
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(deletedFinancings)}">
+                            <td colspan="7" style="text-align:center; color:#94a3b8; padding: 20px;">No hay financiaciones eliminadas para restaurar.</td>
                         </tr>
                     </tbody>
                 </table>

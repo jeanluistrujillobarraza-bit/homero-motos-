@@ -3,9 +3,13 @@ package com.moto.controller;
 import com.moto.model.Motorcycle;
 import com.moto.model.FinancingPlan;
 import com.moto.model.Payment;
+import com.moto.model.DeletedFinancingBackup;
 import com.moto.repository.MotorcycleRepository;
 import com.moto.repository.FinancingPlanRepository;
 import com.moto.repository.PaymentRepository;
+import com.moto.repository.DeletedFinancingBackupRepository;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import com.moto.service.AuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,6 +34,9 @@ public class MotorcycleController {
 
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private DeletedFinancingBackupRepository deletedFinancingBackupRepository;
 
     @Autowired
     private AuditService auditService;
@@ -166,7 +173,29 @@ public class MotorcycleController {
             } else {
                 // Super Admin: delete associated financing plan and its payments
                 financingPlanRepository.findByMotorcycleIdAndTenantId(id, tenantId).ifPresent(plan -> {
-                    paymentRepository.deleteAll(paymentRepository.findByFinancingPlanIdAndTenantIdOrderByFechaPagoAsc(plan.getId(), tenantId));
+                    java.util.List<Payment> payments = paymentRepository.findByFinancingPlanIdAndTenantIdOrderByFechaPagoAsc(plan.getId(), tenantId);
+                    
+                    // Backup before delete
+                    DeletedFinancingBackup backup = new DeletedFinancingBackup();
+                    backup.setMotorcycleId(motorcycle.getId());
+                    backup.setMotorcyclePlaca(motorcycle.getPlaca());
+                    backup.setMotorcycleMarcaModelo(motorcycle.getMarca() + " " + motorcycle.getModelo());
+                    backup.setOriginalMotorcycleEstado(motorcycle.getEstado());
+                    backup.setFinancingPlan(plan);
+                    backup.setPayments(payments);
+                    backup.setDeletedAt(LocalDateTime.now(ZoneId.of("America/Bogota")));
+                    
+                    String username = "SYSTEM";
+                    org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                    if (auth != null && auth.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
+                        username = ((org.springframework.security.core.userdetails.UserDetails) auth.getPrincipal()).getUsername();
+                    }
+                    backup.setDeletedBy(username);
+                    backup.setTenantId(tenantId);
+                    
+                    deletedFinancingBackupRepository.save(backup);
+
+                    paymentRepository.deleteAll(payments);
                     financingPlanRepository.delete(plan);
                 });
             }
@@ -225,6 +254,27 @@ public class MotorcycleController {
                 FinancingPlan plan = planOpt.get();
                 // Delete all payments associated with the plan
                 java.util.List<Payment> payments = paymentRepository.findByFinancingPlanIdAndTenantIdOrderByFechaPagoAsc(plan.getId(), tenantId);
+                
+                // Backup before delete
+                DeletedFinancingBackup backup = new DeletedFinancingBackup();
+                backup.setMotorcycleId(motorcycle.getId());
+                backup.setMotorcyclePlaca(motorcycle.getPlaca());
+                backup.setMotorcycleMarcaModelo(motorcycle.getMarca() + " " + motorcycle.getModelo());
+                backup.setOriginalMotorcycleEstado(motorcycle.getEstado());
+                backup.setFinancingPlan(plan);
+                backup.setPayments(payments);
+                backup.setDeletedAt(LocalDateTime.now(ZoneId.of("America/Bogota")));
+                
+                String username = "SYSTEM";
+                org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
+                    username = ((org.springframework.security.core.userdetails.UserDetails) auth.getPrincipal()).getUsername();
+                }
+                backup.setDeletedBy(username);
+                backup.setTenantId(tenantId);
+                
+                deletedFinancingBackupRepository.save(backup);
+
                 paymentRepository.deleteAll(payments);
 
                 // Delete the financing plan itself (removing customer details)
