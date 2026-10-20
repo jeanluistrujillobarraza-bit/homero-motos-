@@ -23,7 +23,7 @@ public class ReportService {
     public byte[] exportPaymentsToExcel(List<PaymentController.PaymentWithDetails> payments) throws Exception {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Libro de Caja - Recaudos");
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a", Locale.US);
 
         // Styling for header
         org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();

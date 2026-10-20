@@ -44,6 +44,11 @@ public class Payment {
     public LocalDateTime getFechaPago() { return fechaPago; }
     public void setFechaPago(LocalDateTime fechaPago) { this.fechaPago = fechaPago; }
 
+    public String getFechaPagoFormatted() {
+        if (fechaPago == null) return "-";
+        return fechaPago.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a", java.util.Locale.US));
+    }
+
     public Double getValorPagado() { return valorPagado; }
     public void setValorPagado(Double valorPagado) { this.valorPagado = valorPagado; }
 

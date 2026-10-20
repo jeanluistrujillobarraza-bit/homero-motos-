@@ -497,7 +497,7 @@
                         </thead>
                         <tbody>
                             <tr th:each="item : ${cashPayments}">
-                                <td th:text="${#temporals.format(item.payment.fechaPago, 'dd/MM/yyyy HH:mm')}">12/06/2026</td>
+                                <td th:text="${item.payment.fechaPagoFormatted}">12/06/2026 04:43:19 PM</td>
                                 <td>
                                     <strong th:text="${item.buyerName}" style="color: #fff;">Juan</strong>
                                 </td>
@@ -542,7 +542,7 @@
                         </thead>
                         <tbody>
                             <tr th:each="item : ${nequiPayments}">
-                                <td th:text="${#temporals.format(item.payment.fechaPago, 'dd/MM/yyyy HH:mm')}">12/06/2026</td>
+                                <td th:text="${item.payment.fechaPagoFormatted}">12/06/2026 04:43:19 PM</td>
                                 <td>
                                     <strong th:text="${item.buyerName}" style="color: #fff;">Juan</strong>
                                 </td>

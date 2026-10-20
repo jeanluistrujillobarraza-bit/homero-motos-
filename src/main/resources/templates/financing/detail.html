@@ -562,7 +562,7 @@
                             </thead>
                             <tbody>
                                 <tr th:each="pay : ${payments}">
-                                    <td th:text="${#temporals.format(pay.fechaPago, 'dd/MM/yyyy HH:mm:ss')}">12/06/2026</td>
+                                    <td th:text="${pay.fechaPagoFormatted}">12/06/2026 04:43:19 PM</td>
                                     <td th:text="${pay.numeroCuota == 0 ? 'Cuota Inicial' : pay.numeroCuota}">1</td>
                                     <td th:text="${'$' + #numbers.formatDecimal(pay.valorPagado, 1, 'POINT', 0, 'COMMA')}">$0.00</td>
                                     <td th:text="${pay.metodoPago}">Efectivo</td>

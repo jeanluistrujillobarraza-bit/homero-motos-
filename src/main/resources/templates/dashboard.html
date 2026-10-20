@@ -759,7 +759,7 @@
                         </thead>
                         <tbody>
                             <tr th:each="pay : ${recentPayments}">
-                                <td th:text="${#temporals.format(pay.fechaPago, 'dd/MM/yyyy HH:mm')}">12/06/2026</td>
+                                <td th:text="${pay.fechaPagoFormatted}">12/06/2026 04:43:19 PM</td>
                                 <td>
                                     <span th:if="${pay.numeroCuota == 0}" class="method-badge method-efectivo">
                                         <i class="fa-solid fa-star"></i> Inicial

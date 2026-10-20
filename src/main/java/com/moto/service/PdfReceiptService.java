@@ -44,7 +44,7 @@ public class PdfReceiptService {
 
         NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
         nf.setMaximumFractionDigits(0);
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a", Locale.US);
         DateTimeFormatter dateOnlyFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         // -------------------------------------------------------------
@@ -159,24 +159,20 @@ public class PdfReceiptService {
         summaryPara.add(new Chunk("================================\n", regularFont));
         summaryPara.add(new Chunk("ESTADO DE CRÉDITO\n", titleFont));
         
-        int totalCuotas = (plan.getCuotasTotales() != null) ? plan.getCuotasTotales() : 0;
         int cuotasPagadas = (plan.getCuotasPagadas() != null) ? plan.getCuotasPagadas() : 0;
-        int cuotasRestantes = totalCuotas - cuotasPagadas;
-        int cuotasMora = (plan.getCuotasAtrasadas() != null) ? plan.getCuotasAtrasadas() : 0;
+        double saldoMora = (plan.getValorTotalAdeudado() != null) ? plan.getValorTotalAdeudado() : 0.0;
+        if (saldoMora <= 0.0 && plan.getCuotasAtrasadas() != null && plan.getCuotasAtrasadas() > 0 && plan.getValorCuota() != null) {
+            saldoMora = plan.getCuotasAtrasadas() * plan.getValorCuota();
+        }
 
-        summaryPara.add(new Chunk("CUOTAS TOTALES: ", boldFont));
-        summaryPara.add(new Chunk(String.valueOf(totalCuotas) + "\n", regularFont));
         summaryPara.add(new Chunk("CUOTAS PAGADAS: ", boldFont));
         summaryPara.add(new Chunk(String.valueOf(cuotasPagadas) + "\n", regularFont));
-        summaryPara.add(new Chunk("CUOTAS RESTANTES: ", boldFont));
-        summaryPara.add(new Chunk(String.valueOf(cuotasRestantes) + "\n", regularFont));
         
-        if (cuotasMora > 0) {
-            summaryPara.add(new Chunk("CUOTAS EN MORA: ", boldFont));
-            summaryPara.add(new Chunk(cuotasMora + " (VENCIDO)\n", boldFont));
+        summaryPara.add(new Chunk("SALDO EN MORA: ", boldFont));
+        if (saldoMora > 0) {
+            summaryPara.add(new Chunk(nf.format(saldoMora) + "\n", boldFont));
         } else {
-            summaryPara.add(new Chunk("CUOTAS EN MORA: ", boldFont));
-            summaryPara.add(new Chunk("0\n", regularFont));
+            summaryPara.add(new Chunk(nf.format(0) + "\n", regularFont));
         }
 
         summaryPara.add(new Chunk("================================\n", regularFont));

@@ -136,6 +136,7 @@ public class PaymentController {
             }
             FinancingPlan plan = financingPlanRepository.findById(payment.getFinancingPlanId())
                     .orElseThrow(() -> new IllegalArgumentException("Plan no encontrado"));
+            financingService.updatePaymentStatus(plan);
             Motorcycle moto = motorcycleRepository.findById(plan.getMotorcycleId()).orElse(null);
 
             byte[] pdfBytes = pdfReceiptService.generateReceiptPdf(payment, plan, moto);
